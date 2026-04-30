@@ -36,6 +36,8 @@ public class PieceMovesCalculator {
             KingMovesCalculator();
         } else if (piece.getPieceType() == PieceType.PAWN) {
             PawnMovesCalculator();
+        } else if (piece.getPieceType() == PieceType.KNIGHT) {
+            KnightMovesCalculator();
         }
         return pieceMoves;
     }
@@ -143,7 +145,7 @@ public class PieceMovesCalculator {
         return targetPiece.getTeamColor();
     }
 
-    private void AddPawnMove(int row, int col, boolean isDiagonal) {
+    private boolean AddPawnMove(int row, int col, boolean isDiagonal) {
         ChessPiece.PieceType[] promotionPieces = {
                 PieceType.QUEEN,
                 PieceType.ROOK,
@@ -159,10 +161,10 @@ public class PieceMovesCalculator {
                 for (PieceType promotionPiece : promotionPieces) {
                     CheckAddMove(row, col, promotionPiece);
                 }
-                return;
+                return true;
             }
             CheckAddMove(row, col, null);
-            return;
+            return true;
         }
 
         // Move diagonal
@@ -171,27 +173,42 @@ public class PieceMovesCalculator {
                 for (PieceType promotionPiece : promotionPieces) {
                     CheckAddMove(row, col, promotionPiece);
                 }
-                return;
+                return true;
             }
             CheckAddMove(row, col, null);
+            return true;
         }
+        return false;
     }
 
     private void PawnMovesCalculator() {
 
         int direction = 1;
+        boolean freeSpace;
 
         if (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
             direction = -1;
         }
 
-        AddPawnMove(positionRow + direction, positionCol, false);
+        freeSpace = AddPawnMove(positionRow + direction, positionCol, false);
         AddPawnMove(positionRow + direction, positionCol + 1, true);
         AddPawnMove(positionRow + direction, positionCol - 1, true);
-        if (piece.getPieceType().equals(ChessGame.TeamColor.WHITE) && positionRow == 2) {
+        if (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) && positionRow == 2 && freeSpace) {
             AddPawnMove(positionRow + 2, positionCol, false);
-        } else if (piece.getPieceType().equals(ChessGame.TeamColor.BLACK) && positionRow == 7) {
+        } else if (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK) && positionRow == 7 && freeSpace) {
             AddPawnMove(positionRow - 2, positionCol, false);
         }
+    }
+
+    private void KnightMovesCalculator() {
+        CheckAddMove(positionRow + 2, positionCol + 1, null);
+        CheckAddMove(positionRow + 2, positionCol - 1, null);
+        CheckAddMove(positionRow - 2, positionCol + 1, null);
+        CheckAddMove(positionRow - 2, positionCol - 1, null);
+        CheckAddMove(positionRow + 1, positionCol + 2, null);
+        CheckAddMove(positionRow + 1, positionCol - 2, null);
+        CheckAddMove(positionRow - 1, positionCol + 2, null);
+        CheckAddMove(positionRow - 1, positionCol - 2, null);
+
     }
 }
