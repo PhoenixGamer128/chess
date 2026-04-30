@@ -24,16 +24,18 @@ public class PieceMovesCalculator {
         this.piece = piece;
     }
 
-    public void getMoves() {
+    public Collection<ChessMove> getMoves() {
         if (piece.getPieceType() == PieceType.BISHOP) {
             BishopMovesCalculator();
-        }
-        else if (piece.getPieceType() == PieceType.ROOK) {
+        } else if (piece.getPieceType() == PieceType.ROOK) {
             RookMovesCalculator();
         } else if (piece.getPieceType() == PieceType.QUEEN) {
             BishopMovesCalculator();
             RookMovesCalculator();
+        } else if (piece.getPieceType() == PieceType.KING) {
+            KingMovesCalculator();
         }
+        return pieceMoves;
     }
 
     private void CardinalMoves(int distance, int dirRow, int dirCol) {
@@ -106,16 +108,29 @@ public class PieceMovesCalculator {
         }
     }
 
-    private void KingMovesCalculator() {
-        int offRow = 0;
-        int offCol = 0;
-        ChessPosition endPosition;
-        ChessMove move;
-
-        endPosition = new ChessPosition(positionRow + 1, positionCol + 1);
-        if (InBounds(endPosition)) {
-            move = new ChessMove(startPosition, endPosition, null);
-            pieceMoves.add(move);
+    private void CheckAddMove(int row, int col, PieceType promotionPiece) {
+        ChessPosition endPosition = new ChessPosition(row, col);
+        if (!InBounds(endPosition)) {
+            return;
         }
+        ChessPiece targetPiece = board.getPiece(endPosition);
+        if (targetPiece != null) {
+            if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
+                return;
+            }
+        }
+        ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
+        pieceMoves.add(move);
+    }
+
+    private void KingMovesCalculator() {
+        CheckAddMove(positionRow + 1, positionCol + 1, null);
+        CheckAddMove(positionRow + 1, positionCol, null);
+        CheckAddMove(positionRow + 1, positionCol - 1, null);
+        CheckAddMove(positionRow, positionCol - 1, null);
+        CheckAddMove(positionRow - 1, positionCol - 1, null);
+        CheckAddMove(positionRow - 1, positionCol, null);
+        CheckAddMove(positionRow - 1, positionCol + 1, null);
+        CheckAddMove(positionRow, positionCol + 1, null);
     }
 }
