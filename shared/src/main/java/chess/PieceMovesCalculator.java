@@ -11,19 +11,21 @@ public class PieceMovesCalculator {
     private final ChessPosition startPosition;
     private final int positionRow;
     private final int positionCol;
-    private final ChessPiece.PieceType type;
     private Set<ChessMove> pieceMoves;
+    private final ChessPiece piece;
+    private final ChessBoard board;
 
-    public PieceMovesCalculator(ChessPosition startPosition, ChessPiece.PieceType type) {
+    public PieceMovesCalculator(ChessBoard board, ChessPiece piece, ChessPosition startPosition) {
+        this.board = board;
         this.startPosition = startPosition;
         positionRow = this.startPosition.getRow();
         positionCol = this.startPosition.getColumn();
         pieceMoves = new HashSet<>();
-        this.type = type;
+        this.piece = piece;
     }
 
     public Collection<ChessMove> getMoves() {
-        if (type == PieceType.BISHOP) {
+        if (piece.getPieceType() == PieceType.BISHOP) {
             return BishopMovesCalculator();
         }
         else {
@@ -42,9 +44,19 @@ public class PieceMovesCalculator {
                 distance += 1;
                 int newRow = positionRow + (distance * dirRow);
                 int newCol = positionCol + (distance * dirCol);
+
                 ChessPosition endPosition = new ChessPosition(newRow, newCol);
                 ChessMove move = new ChessMove(startPosition, endPosition, null);
-                //if (!PieceBlocked()) // Implement a blocked piece
+                ChessPiece targetPiece = board.getPiece(endPosition);
+
+                if (!(targetPiece == null)) {
+                    if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
+                        break;
+                    } else {
+                        pieceMoves.add(move);
+                        break;
+                    }
+                }
                 pieceMoves.add(move);
             }
             if (dirCol == 1 && dirRow == 1) {
