@@ -35,7 +35,13 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return chessBoard[position.getRow()-1][position.getColumn()-1];
+        boolean rowBound = position.getRow() <= 8 && position.getRow() >= 1;
+        boolean columnBound = position.getColumn() <= 8 && position.getColumn() >= 1;
+        if (rowBound && columnBound) {
+            return chessBoard[position.getRow()-1][position.getColumn()-1];
+        } else {
+            return null;
+        }
     }
 
     @Override

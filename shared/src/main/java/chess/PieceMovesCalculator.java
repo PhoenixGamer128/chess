@@ -34,11 +34,14 @@ public class PieceMovesCalculator {
             RookMovesCalculator();
         } else if (piece.getPieceType() == PieceType.KING) {
             KingMovesCalculator();
+        } else if (piece.getPieceType() == PieceType.PAWN) {
+            PawnMovesCalculator();
         }
         return pieceMoves;
     }
 
-    private void CardinalMoves(int distance, int dirRow, int dirCol) {
+    private void CardinalMoves(int dirRow, int dirCol) {
+        int distance = 0;
         while (InBoundsAxis(positionRow + (distance + 1) * dirRow)
                 && InBoundsAxis(positionCol + (distance + 1) * dirCol)) {
             distance += 1;
@@ -70,12 +73,11 @@ public class PieceMovesCalculator {
     }
 
     private void BishopMovesCalculator() {
-        int distance = 0;
         int dirRow = 1;
         int dirCol = 1;
         for (int i = 0; i < 4; i++) {
 
-            CardinalMoves(distance, dirRow, dirCol);
+            CardinalMoves(dirRow, dirCol);
 
             if (dirCol == 1 && dirRow == 1) {
                 dirCol = -1;
@@ -84,17 +86,15 @@ public class PieceMovesCalculator {
             } else{
                 dirCol = 1;
             }
-            distance = 0;
         }
     }
 
     private void RookMovesCalculator() {
-        int distance = 0;
         int dirRow = 0;
         int dirCol = 1;
         for (int i = 0; i < 4; i++) {
 
-            CardinalMoves(distance, dirRow, dirCol);
+            CardinalMoves(dirRow, dirCol);
 
             if (dirCol == 1) {
                 dirCol = -1;
@@ -104,23 +104,23 @@ public class PieceMovesCalculator {
             } else if (dirRow == 1) {
                 dirRow = -1;
             }
-            distance = 0;
         }
     }
 
-    private void CheckAddMove(int row, int col, PieceType promotionPiece) {
+    private boolean CheckAddMove(int row, int col, PieceType promotionPiece) {
         ChessPosition endPosition = new ChessPosition(row, col);
         if (!InBounds(endPosition)) {
-            return;
+            return false;
         }
         ChessPiece targetPiece = board.getPiece(endPosition);
         if (targetPiece != null) {
             if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
-                return;
+                return false;
             }
         }
         ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
         pieceMoves.add(move);
+        return true;
     }
 
     private void KingMovesCalculator() {
@@ -132,5 +132,66 @@ public class PieceMovesCalculator {
         CheckAddMove(positionRow - 1, positionCol, null);
         CheckAddMove(positionRow - 1, positionCol + 1, null);
         CheckAddMove(positionRow, positionCol + 1, null);
+    }
+
+    private ChessGame.TeamColor GetPositionColor(int row, int col) {
+        ChessPosition targetPosition = new ChessPosition(row, col);
+        ChessPiece targetPiece = board.getPiece(targetPosition);
+        if (targetPiece == null) {
+            return null;
+        }
+        return targetPiece.getTeamColor();
+    }
+
+    private void AddPawnMove(int row, int col, boolean isDiagonal) {
+        ChessPiece.PieceType[] promotionPieces = {
+                PieceType.QUEEN,
+                PieceType.ROOK,
+                PieceType.BISHOP,
+                PieceType.KNIGHT
+        };
+        ChessGame.TeamColor targetColor = GetPositionColor(row, col);
+
+        // Move forward
+        if (targetColor == null && !isDiagonal) {
+            // Check Pawn promotion
+            if (row == 8 || row == 1) {
+                for (PieceType promotionPiece : promotionPieces) {
+                    CheckAddMove(row, col, promotionPiece);
+                }
+                return;
+            }
+            CheckAddMove(row, col, null);
+            return;
+        }
+
+        // Move diagonal
+        if (isDiagonal && targetColor != null) {
+            if (row == 8 || row == 1) {
+                for (PieceType promotionPiece : promotionPieces) {
+                    CheckAddMove(row, col, promotionPiece);
+                }
+                return;
+            }
+            CheckAddMove(row, col, null);
+        }
+    }
+
+    private void PawnMovesCalculator() {
+
+        int direction = 1;
+
+        if (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
+            direction = -1;
+        }
+
+        AddPawnMove(positionRow + direction, positionCol, false);
+        AddPawnMove(positionRow + direction, positionCol + 1, true);
+        AddPawnMove(positionRow + direction, positionCol - 1, true);
+        if (piece.getPieceType().equals(ChessGame.TeamColor.WHITE) && positionRow == 2) {
+            AddPawnMove(positionRow + 2, positionCol, false);
+        } else if (piece.getPieceType().equals(ChessGame.TeamColor.BLACK) && positionRow == 7) {
+            AddPawnMove(positionRow - 2, positionCol, false);
+        }
     }
 }
