@@ -24,54 +24,98 @@ public class PieceMovesCalculator {
         this.piece = piece;
     }
 
-    public Collection<ChessMove> getMoves() {
+    public void getMoves() {
         if (piece.getPieceType() == PieceType.BISHOP) {
-            return BishopMovesCalculator();
+            BishopMovesCalculator();
         }
-        else {
-            return BishopMovesCalculator();
+        else if (piece.getPieceType() == PieceType.ROOK) {
+            RookMovesCalculator();
+        } else if (piece.getPieceType() == PieceType.QUEEN) {
+            BishopMovesCalculator();
+            RookMovesCalculator();
         }
     }
 
-    private Collection<ChessMove> BishopMovesCalculator() {
+    private void CardinalMoves(int distance, int dirRow, int dirCol) {
+        while (InBoundsAxis(positionRow + (distance + 1) * dirRow)
+                && InBoundsAxis(positionCol + (distance + 1) * dirCol)) {
+            distance += 1;
+            int newRow = positionRow + (distance * dirRow);
+            int newCol = positionCol + (distance * dirCol);
+
+            ChessPosition endPosition = new ChessPosition(newRow, newCol);
+            ChessMove move = new ChessMove(startPosition, endPosition, null);
+            ChessPiece targetPiece = board.getPiece(endPosition);
+
+            if (!(targetPiece == null)) {
+                if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
+                    break;
+                } else {
+                    pieceMoves.add(move);
+                    break;
+                }
+            }
+            pieceMoves.add(move);
+        }
+    }
+
+    private boolean InBoundsAxis(int axis) {
+        return (axis <= 8 && axis >= 1);
+    }
+
+    private boolean InBounds(ChessPosition position) {
+        return (InBoundsAxis(position.getRow()) && InBoundsAxis(position.getColumn()));
+    }
+
+    private void BishopMovesCalculator() {
         int distance = 0;
-        int dirCol = 1;
         int dirRow = 1;
+        int dirCol = 1;
         for (int i = 0; i < 4; i++) {
 
-            while (((positionRow + (distance + 1) * dirRow) <= 8 && (positionRow + (distance + 1) * dirRow) >= 1)
-                && ((positionCol + (distance + 1) * dirCol) <= 8 && (positionCol + (distance + 1) * dirCol) >= 1)) {
-                distance += 1;
-                int newRow = positionRow + (distance * dirRow);
-                int newCol = positionCol + (distance * dirCol);
+            CardinalMoves(distance, dirRow, dirCol);
 
-                ChessPosition endPosition = new ChessPosition(newRow, newCol);
-                ChessMove move = new ChessMove(startPosition, endPosition, null);
-                ChessPiece targetPiece = board.getPiece(endPosition);
-
-                if (!(targetPiece == null)) {
-                    if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
-                        break;
-                    } else {
-                        pieceMoves.add(move);
-                        break;
-                    }
-                }
-                pieceMoves.add(move);
-            }
             if (dirCol == 1 && dirRow == 1) {
                 dirCol = -1;
-            }
-            else if (dirCol == -1 && dirRow == 1) {
+            } else if (dirCol == -1 && dirRow == 1) {
                 dirRow = -1;
-            }
-            else{
+            } else{
                 dirCol = 1;
             }
             distance = 0;
         }
-        return pieceMoves;
     }
 
-    private void Capturable () {}
+    private void RookMovesCalculator() {
+        int distance = 0;
+        int dirRow = 0;
+        int dirCol = 1;
+        for (int i = 0; i < 4; i++) {
+
+            CardinalMoves(distance, dirRow, dirCol);
+
+            if (dirCol == 1) {
+                dirCol = -1;
+            } else if (dirCol == -1) {
+                dirCol = 0;
+                dirRow = 1;
+            } else if (dirRow == 1) {
+                dirRow = -1;
+            }
+            distance = 0;
+        }
+    }
+
+    private void KingMovesCalculator() {
+        int offRow = 0;
+        int offCol = 0;
+        ChessPosition endPosition;
+        ChessMove move;
+
+        endPosition = new ChessPosition(positionRow + 1, positionCol + 1);
+        if (InBounds(endPosition)) {
+            move = new ChessMove(startPosition, endPosition, null);
+            pieceMoves.add(move);
+        }
+    }
 }
