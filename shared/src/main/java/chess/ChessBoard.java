@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -8,7 +9,7 @@ import java.util.Arrays;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
+public class ChessBoard implements Cloneable{
 
     ChessPiece[][] chessBoard;
 
@@ -81,6 +82,53 @@ public class ChessBoard {
                 addPiece(position, piece);
                 col++;
             }
+        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("Board: \n");
+        for (int i = 8; i > 0; i--) {
+            for (int j = 1; j <= 8; j++) {
+                ChessPosition position = new ChessPosition(i,j);
+                if (getPiece(position) != null) {
+                    builder.append(chessBoard[i-1][j-1].toString()).append(", ");
+                } else {
+                    builder.append("NULL, ");
+                }
+            }
+            builder.append("\n");
+        }
+        return builder.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessBoard that = (ChessBoard) o;
+        return Objects.deepEquals(chessBoard, that.chessBoard);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.deepHashCode(chessBoard);
+    }
+
+    @Override
+    public ChessBoard clone() {
+        try {
+            ChessBoard clone = (ChessBoard) super.clone();
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            ChessPiece[][] boardClone = new ChessPiece[8][8];
+            for (int i = 0; i < 8; i++) {
+                boardClone[i] = Arrays.copyOf(chessBoard[i],8);
+            }
+            clone.chessBoard = boardClone;
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
         }
     }
 }
