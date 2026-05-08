@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -53,7 +54,28 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece piece = board.getPiece(startPosition);
+        Collection<ChessMove> validPieceMoves;
+        Collection<ChessMove> invalidPieceMoves = new HashSet<>();
+        if (piece != null) {
+            validPieceMoves = piece.pieceMoves(board, startPosition);
+        } else {
+            return null;
+        }
+        for (ChessMove move : validPieceMoves) {
+            ChessBoard boardSimulation = board.clone();
+
+            boardSimulation.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
+            boardSimulation.addPiece(move.getStartPosition(), null);
+
+            if (stateCalculator.IsInCheckCalculator(boardSimulation, teamTurn)) {
+                invalidPieceMoves.add(move);
+            }
+        }
+        for (ChessMove move : invalidPieceMoves) {
+            validPieceMoves.remove(move);
+        }
+        return validPieceMoves;
     }
 
     /**
@@ -63,9 +85,34 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessBoard clone = board.clone();
-        board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
-        board.addPiece(move.getStartPosition(), null);
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPiece piece = board.getPiece(startPosition);
+
+        if (piece == null) {
+            throw new InvalidMoveException("No piece at start position");
+        }
+
+        if (!piece.getTeamColor().equals(teamTurn)) {
+            throw new InvalidMoveException("Move made out of turn");
+        }
+
+        Collection<ChessMove> validPieceMoves = validMoves(startPosition);
+
+        if (validPieceMoves.contains(move)) {
+            // Check if piece is a pawn being promoted
+            if (move.getPromotionPiece() != null) {
+                ChessPiece promotionPiece = new ChessPiece(teamTurn, move.getPromotionPiece());
+                board.addPiece(move.getEndPosition(), promotionPiece);
+            } else {
+                board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
+
+            }
+            board.addPiece(move.getStartPosition(), null);
+            teamTurn = teamTurn.equals(TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+            return;
+        }
+
+        throw new InvalidMoveException("Cannot make this move");
     }
 
     /**
