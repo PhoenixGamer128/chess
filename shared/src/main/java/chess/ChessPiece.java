@@ -10,10 +10,10 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessPiece {
+public class ChessPiece implements Cloneable{
 
-    private final ChessGame.TeamColor pieceColor;
-    private final PieceType type;
+    ChessGame.TeamColor pieceColor;
+    ChessPiece.PieceType type;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
@@ -46,6 +46,24 @@ public class ChessPiece {
         return type;
     }
 
+    /**
+     * Calculates all the positions a chess piece can move to
+     * Does not take into account moves that are illegal due to leaving the king in
+     * danger
+     *
+     * @return Collection of valid moves
+     */
+    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
+        PieceMovesCalculator calculator = new PieceMovesCalculator();
+        calculator.Begin(board, myPosition);
+        return calculator.CalculateMoves();
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s", type);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -60,15 +78,8 @@ public class ChessPiece {
         return Objects.hash(pieceColor, type);
     }
 
-    /**
-     * Calculates all the positions a chess piece can move to
-     * Does not take into account moves that are illegal due to leaving the king in
-     * danger
-     *
-     * @return Collection of valid moves
-     */
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        PieceMovesCalculator moves = new PieceMovesCalculator(board, this, myPosition);
-        return moves.getMoves();
+    @Override
+    public ChessPiece clone() {
+        return new ChessPiece(pieceColor, type);
     }
 }

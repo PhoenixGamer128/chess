@@ -2,213 +2,182 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Set;
-
-import static chess.ChessPiece.PieceType;
 
 public class PieceMovesCalculator {
 
-    private final ChessPosition startPosition;
-    private final int positionRow;
-    private final int positionCol;
-    private Set<ChessMove> pieceMoves;
-    private final ChessPiece piece;
-    private final ChessBoard board;
+    Collection<ChessMove> moveSet;
+    ChessBoard board;
+    ChessPosition startPosition;
+    ChessPiece piece;
+    int row;
+    int col;
 
-    public PieceMovesCalculator(ChessBoard board, ChessPiece piece, ChessPosition startPosition) {
+    public void Begin(ChessBoard board, ChessPosition position) {
+        moveSet = new HashSet<>();
         this.board = board;
-        this.startPosition = startPosition;
-        positionRow = this.startPosition.getRow();
-        positionCol = this.startPosition.getColumn();
-        pieceMoves = new HashSet<>();
-        this.piece = piece;
+        startPosition = position;
+        piece = board.getPiece(position);
+        row = position.getRow();
+        col = position.getColumn();
     }
 
-    public Collection<ChessMove> getMoves() {
-        if (piece.getPieceType() == PieceType.BISHOP) {
-            BishopMovesCalculator();
-        } else if (piece.getPieceType() == PieceType.ROOK) {
-            RookMovesCalculator();
-        } else if (piece.getPieceType() == PieceType.QUEEN) {
-            BishopMovesCalculator();
-            RookMovesCalculator();
-        } else if (piece.getPieceType() == PieceType.KING) {
-            KingMovesCalculator();
-        } else if (piece.getPieceType() == PieceType.PAWN) {
-            PawnMovesCalculator();
-        } else if (piece.getPieceType() == PieceType.KNIGHT) {
-            KnightMovesCalculator();
+    public Collection<ChessMove> CalculateMoves() {
+        ChessPiece.PieceType type = piece.getPieceType();
+        if (type == ChessPiece.PieceType.BISHOP) {
+            BishopMoveCalculator();
+        } else if (type == ChessPiece.PieceType.ROOK) {
+            RookMoveCalculator();
+        } else if (type == ChessPiece.PieceType.QUEEN) {
+            BishopMoveCalculator();
+            RookMoveCalculator();
+        } else if (type == ChessPiece.PieceType.KING) {
+            KingMoveCalculator();
+        } else if (type == ChessPiece.PieceType.KNIGHT) {
+            KnightMoveCalculator();
+        } else if (type == ChessPiece.PieceType.PAWN) {
+            PawnMoveCalculator();
         }
-        return pieceMoves;
+        return moveSet;
     }
 
-    private void CardinalMoves(int dirRow, int dirCol) {
-        int distance = 0;
-        while (InBoundsAxis(positionRow + (distance + 1) * dirRow)
-                && InBoundsAxis(positionCol + (distance + 1) * dirCol)) {
-            distance += 1;
-            int newRow = positionRow + (distance * dirRow);
-            int newCol = positionCol + (distance * dirCol);
+    private boolean CheckInBounds(int row, int col) {
+        boolean inRow = (row >= 1 && row <= 8);
+        boolean inCol = (col >= 1 && col <= 8);
+        return inRow && inCol;
+    }
 
-            ChessPosition endPosition = new ChessPosition(newRow, newCol);
-            ChessMove move = new ChessMove(startPosition, endPosition, null);
-            ChessPiece targetPiece = board.getPiece(endPosition);
+    private boolean CheckAddMove(int row, int col, ChessPiece.PieceType promotionPiece) {
+        ChessPosition targetPosition = new ChessPosition(row, col);
+        if (!CheckInBounds(row, col)) {
+            return false;
+        }
+        if (board.getPiece(targetPosition) == null) {
+            ChessMove move = new ChessMove(startPosition, targetPosition, promotionPiece);
+            moveSet.add(move);
+            return true;
+        }
 
-            if (!(targetPiece == null)) {
-                if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
-                    break;
-                } else {
-                    pieceMoves.add(move);
-                    break;
-                }
+        if (!(board.getPiece(targetPosition).getTeamColor().equals(piece.getTeamColor()))) {
+            ChessMove move = new ChessMove(startPosition, targetPosition, promotionPiece);
+            moveSet.add(move);
+            return false;
+        }
+        return false;
+    }
+
+    private void CardinalMoveCalculator(int dirRow, int dirCol) {
+        int distance = 1;
+        int targetRow = row + (distance * dirRow);
+        int targetCol = col + (distance * dirCol);
+
+        while (CheckInBounds(targetRow, targetCol)) {
+            if (!CheckAddMove(targetRow, targetCol, null)) {
+                break;
             }
-            pieceMoves.add(move);
+            distance++;
+            targetRow = row + (distance * dirRow);
+            targetCol = col + (distance * dirCol);
         }
     }
 
-    private boolean InBoundsAxis(int axis) {
-        return (axis <= 8 && axis >= 1);
-    }
-
-    private boolean InBounds(ChessPosition position) {
-        return (InBoundsAxis(position.getRow()) && InBoundsAxis(position.getColumn()));
-    }
-
-    private void BishopMovesCalculator() {
+    private void BishopMoveCalculator() {
         int dirRow = 1;
         int dirCol = 1;
         for (int i = 0; i < 4; i++) {
-
-            CardinalMoves(dirRow, dirCol);
-
-            if (dirCol == 1 && dirRow == 1) {
+            CardinalMoveCalculator(dirRow, dirCol);
+            if (dirRow == 1 && dirCol == 1) {
                 dirCol = -1;
-            } else if (dirCol == -1 && dirRow == 1) {
+            } else if (dirRow == 1 && dirCol == -1) {
                 dirRow = -1;
-            } else{
+            } else {
                 dirCol = 1;
             }
         }
     }
 
-    private void RookMovesCalculator() {
+    private void RookMoveCalculator() {
         int dirRow = 0;
         int dirCol = 1;
-        for (int i = 0; i < 4; i++) {
-
-            CardinalMoves(dirRow, dirCol);
-
-            if (dirCol == 1) {
-                dirCol = -1;
-            } else if (dirCol == -1) {
-                dirCol = 0;
+        for(int i = 0; i < 4; i++) {
+            CardinalMoveCalculator(dirRow, dirCol);
+            if (dirRow == 0 && dirCol == 1) {
                 dirRow = 1;
-            } else if (dirRow == 1) {
+                dirCol = 0;
+            } else if (dirRow == 1 && dirCol == 0) {
+                dirRow = 0;
+                dirCol = -1;
+            } else {
                 dirRow = -1;
+                dirCol = 0;
             }
         }
     }
 
-    private boolean CheckAddMove(int row, int col, PieceType promotionPiece) {
-        ChessPosition endPosition = new ChessPosition(row, col);
-        if (!InBounds(endPosition)) {
-            return false;
+    private void KingMoveCalculator() {
+        CheckAddMove(row + 1, col + 1, null);
+        CheckAddMove(row + 1, col - 1, null);
+        CheckAddMove(row - 1, col + 1, null);
+        CheckAddMove(row - 1, col - 1, null);
+        CheckAddMove(row + 1, col, null);
+        CheckAddMove(row - 1, col, null);
+        CheckAddMove(row, col + 1, null);
+        CheckAddMove(row, col - 1, null);
+    }
+
+    private void KnightMoveCalculator() {
+        CheckAddMove(row + 2, col + 1, null);
+        CheckAddMove(row + 2, col - 1, null);
+        CheckAddMove(row - 2, col + 1, null);
+        CheckAddMove(row - 2, col - 1, null);
+        CheckAddMove(row + 1, col + 2, null);
+        CheckAddMove(row + 1, col - 2, null);
+        CheckAddMove(row - 1, col + 2, null);
+        CheckAddMove(row - 1, col - 2, null);
+    }
+
+    private void PawnMoveCalculator() {
+        ChessGame.TeamColor color = piece.getTeamColor();
+        boolean firstMove = false;
+        int direction = piece.getTeamColor() == ChessGame.TeamColor.WHITE ? 1 : -1;
+        if (color == ChessGame.TeamColor.WHITE && row == 2) {
+            firstMove = true;
+        } else if (color == ChessGame.TeamColor.BLACK && row == 7) {
+            firstMove = true;
         }
-        ChessPiece targetPiece = board.getPiece(endPosition);
-        if (targetPiece != null) {
-            if (targetPiece.getTeamColor().equals(piece.getTeamColor())) {
-                return false;
+
+        ChessPosition targetPosition = new ChessPosition(row + direction, col);
+        if (board.getPiece(targetPosition) == null) {
+            PawnAddPromotion(row + direction, col, piece.getTeamColor());
+            targetPosition = new ChessPosition(row + (2 * direction), col);
+            if (firstMove && board.getPiece(targetPosition) == null) {
+                PawnAddPromotion(row + (2 * direction), col, piece.getTeamColor());
             }
         }
-        ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
-        pieceMoves.add(move);
-        return true;
-    }
-
-    private void KingMovesCalculator() {
-        CheckAddMove(positionRow + 1, positionCol + 1, null);
-        CheckAddMove(positionRow + 1, positionCol, null);
-        CheckAddMove(positionRow + 1, positionCol - 1, null);
-        CheckAddMove(positionRow, positionCol - 1, null);
-        CheckAddMove(positionRow - 1, positionCol - 1, null);
-        CheckAddMove(positionRow - 1, positionCol, null);
-        CheckAddMove(positionRow - 1, positionCol + 1, null);
-        CheckAddMove(positionRow, positionCol + 1, null);
-    }
-
-    private ChessGame.TeamColor GetPositionColor(int row, int col) {
-        ChessPosition targetPosition = new ChessPosition(row, col);
-        ChessPiece targetPiece = board.getPiece(targetPosition);
-        if (targetPiece == null) {
-            return null;
+        targetPosition = new ChessPosition(row + direction, col - 1);
+        if (board.getPiece(targetPosition) != null) {
+            PawnAddPromotion(row + direction, col - 1, color);
         }
-        return targetPiece.getTeamColor();
-    }
-
-    private boolean AddPawnMove(int row, int col, boolean isDiagonal) {
-        ChessPiece.PieceType[] promotionPieces = {
-                PieceType.QUEEN,
-                PieceType.ROOK,
-                PieceType.BISHOP,
-                PieceType.KNIGHT
-        };
-        ChessGame.TeamColor targetColor = GetPositionColor(row, col);
-
-        // Move forward
-        if (targetColor == null && !isDiagonal) {
-            // Check Pawn promotion
-            if (row == 8 || row == 1) {
-                for (PieceType promotionPiece : promotionPieces) {
-                    CheckAddMove(row, col, promotionPiece);
-                }
-                return true;
-            }
-            CheckAddMove(row, col, null);
-            return true;
-        }
-
-        // Move diagonal
-        if (isDiagonal && targetColor != null) {
-            if (row == 8 || row == 1) {
-                for (PieceType promotionPiece : promotionPieces) {
-                    CheckAddMove(row, col, promotionPiece);
-                }
-                return true;
-            }
-            CheckAddMove(row, col, null);
-            return true;
-        }
-        return false;
-    }
-
-    private void PawnMovesCalculator() {
-
-        int direction = 1;
-        boolean freeSpace;
-
-        if (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK)) {
-            direction = -1;
-        }
-
-        freeSpace = AddPawnMove(positionRow + direction, positionCol, false);
-        AddPawnMove(positionRow + direction, positionCol + 1, true);
-        AddPawnMove(positionRow + direction, positionCol - 1, true);
-        if (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) && positionRow == 2 && freeSpace) {
-            AddPawnMove(positionRow + 2, positionCol, false);
-        } else if (piece.getTeamColor().equals(ChessGame.TeamColor.BLACK) && positionRow == 7 && freeSpace) {
-            AddPawnMove(positionRow - 2, positionCol, false);
+        targetPosition = new ChessPosition(row + direction, col + 1);
+        if (board.getPiece(targetPosition) != null) {
+            PawnAddPromotion(row + direction, col + 1, color);
         }
     }
 
-    private void KnightMovesCalculator() {
-        CheckAddMove(positionRow + 2, positionCol + 1, null);
-        CheckAddMove(positionRow + 2, positionCol - 1, null);
-        CheckAddMove(positionRow - 2, positionCol + 1, null);
-        CheckAddMove(positionRow - 2, positionCol - 1, null);
-        CheckAddMove(positionRow + 1, positionCol + 2, null);
-        CheckAddMove(positionRow + 1, positionCol - 2, null);
-        CheckAddMove(positionRow - 1, positionCol + 2, null);
-        CheckAddMove(positionRow - 1, positionCol - 2, null);
-
+    private void PawnAddPromotion(int row, int col, ChessGame.TeamColor color) {
+        ChessPiece.PieceType[] promotionPieces;
+        if ((row == 8 && color == ChessGame.TeamColor.WHITE)
+                || row == 1 && color == ChessGame.TeamColor.BLACK) {
+            promotionPieces = new ChessPiece.PieceType[]{
+                    ChessPiece.PieceType.KNIGHT,
+                    ChessPiece.PieceType.QUEEN,
+                    ChessPiece.PieceType.ROOK,
+                    ChessPiece.PieceType.BISHOP
+            };
+        } else {
+            promotionPieces = new ChessPiece.PieceType[]{null};
+        }
+        for (ChessPiece.PieceType type : promotionPieces) {
+            CheckAddMove(row, col, type);
+        }
     }
 }
