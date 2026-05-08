@@ -12,11 +12,13 @@ public class ChessGame {
 
     TeamColor teamTurn;
     ChessBoard board;
+    BoardStateCalculator stateCalculator;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         teamTurn = TeamColor.WHITE;
+        stateCalculator = new BoardStateCalculator();
     }
 
     /**
@@ -61,6 +63,7 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        ChessBoard clone = board.clone();
         board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
         board.addPiece(move.getStartPosition(), null);
     }
@@ -72,7 +75,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        return stateCalculator.IsInCheckCalculator(board, teamColor);
     }
 
     /**
@@ -102,7 +105,7 @@ public class ChessGame {
      * @param board the new board to use
      */
     public void setBoard(ChessBoard board) {
-        throw new RuntimeException("Not implemented");
+        this.board = board;
     }
 
     /**
@@ -111,6 +114,21 @@ public class ChessGame {
      * @return the chessboard
      */
     public ChessBoard getBoard() {
-        throw new RuntimeException("Not implemented");
+        return board;
     }
+
+//    @Override
+//    public ChessGame clone() {
+//        try {
+//            ChessGame clone = (ChessGame) super.clone();
+//            // TODO: copy mutable state here, so the clone can't change the internals of the original
+//            ChessBoard clonedBoard = new ChessBoard();
+//            for (int i = 0; i < 8; i++) {
+//                clone[i] = Arrays.copyOf(clone[i]);
+//            }
+//            return clone;
+//        } catch (CloneNotSupportedException e) {
+//            throw new AssertionError();
+//        }
+//    }
 }
