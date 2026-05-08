@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -11,10 +10,10 @@ import java.util.Objects;
  */
 public class ChessBoard {
 
-    ChessPiece[][] chessBoard = new ChessPiece[8][8];;
+    ChessPiece[][] chessBoard;
 
     public ChessBoard() {
-
+        chessBoard = new ChessPiece[8][8];
     }
 
     /**
@@ -35,47 +34,14 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        boolean rowBound = position.getRow() <= 8 && position.getRow() >= 1;
-        boolean columnBound = position.getColumn() <= 8 && position.getColumn() >= 1;
-        if (rowBound && columnBound) {
-            return chessBoard[position.getRow()-1][position.getColumn()-1];
-        } else {
+        if (position.getRow() < 1
+                || position.getRow() > 8
+                || position.getColumn() < 1
+                || position.getColumn() > 8) {
             return null;
         }
-    }
+        return chessBoard[position.getRow() - 1][position.getColumn() - 1];
 
-    @Override
-    public boolean equals(Object o) {
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ChessBoard that = (ChessBoard) o;
-        return Objects.deepEquals(chessBoard, that.chessBoard);
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        ChessPosition position;
-        ChessPiece piece;
-
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < 8; j++) {
-                position = new ChessPosition(i,j);
-                piece = getPiece(position);
-                if (piece != null) {
-                    builder.append(getPiece(position).toString());
-                } else {
-                    builder.append("null");
-                }
-            }
-        }
-        return builder.toString();
-    }
-
-    @Override
-    public int hashCode() {
-        return Arrays.deepHashCode(chessBoard);
     }
 
     /**
@@ -83,13 +49,7 @@ public class ChessBoard {
      * (How the game of chess normally starts)
      */
     public void resetBoard() {
-        chessBoard = new ChessPiece[8][8];
-        ChessPosition position;
-        ChessPiece piece;
-        int row = 1;
-        int col = 1;
-
-        ChessPiece.PieceType[] pieces = {
+        ChessPiece.PieceType[] chessSetup = {
                 ChessPiece.PieceType.ROOK,
                 ChessPiece.PieceType.KNIGHT,
                 ChessPiece.PieceType.BISHOP,
@@ -97,31 +57,30 @@ public class ChessBoard {
                 ChessPiece.PieceType.KING,
                 ChessPiece.PieceType.BISHOP,
                 ChessPiece.PieceType.KNIGHT,
-                ChessPiece.PieceType.ROOK,
+                ChessPiece.PieceType.ROOK
         };
-
-        ChessGame.TeamColor[] teams = {
+        ChessGame.TeamColor[] chessSetupSide = {
                 ChessGame.TeamColor.WHITE,
                 ChessGame.TeamColor.BLACK
         };
 
-        for (ChessGame.TeamColor team : teams) {
-            for (ChessPiece.PieceType type : pieces) {
-                position = new ChessPosition(row, col);
-                piece = new ChessPiece(team,type);
+        for (ChessGame.TeamColor color : chessSetupSide) {
+            int row = color == ChessGame.TeamColor.WHITE ? 1 : 8;
+            int col = 1;
+            for (ChessPiece.PieceType type : chessSetup) {
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = new ChessPiece(color, type);
                 addPiece(position, piece);
                 col++;
             }
-            row = (team == ChessGame.TeamColor.WHITE) ? 2 : 7;
+            row = color == ChessGame.TeamColor.WHITE ? 2 : 7;
             col = 1;
             for (int i = 0; i < 8; i++) {
-                position = new ChessPosition(row, col);
-                piece = new ChessPiece(team, ChessPiece.PieceType.PAWN);
+                ChessPosition position = new ChessPosition(row, col);
+                ChessPiece piece = new ChessPiece(color, ChessPiece.PieceType.PAWN);
                 addPiece(position, piece);
                 col++;
             }
-            row = 8;
-            col = 1;
         }
     }
 }
