@@ -12,11 +12,9 @@ public class BoardStateCalculator {
 
     public boolean IsInCheckCalculator(ChessBoard board, ChessGame.TeamColor teamColor) {
         ChessGame.TeamColor enemyColor = teamColor == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
-        ChessPosition kingPosition;
-        List<ChessPosition> enemyPiecePositions;
 
-        kingPosition = SearchPieces(board, ChessPiece.PieceType.KING, teamColor).getFirst();
-        enemyPiecePositions = SearchPieces(board, null, enemyColor);
+        ChessPosition kingPosition = FindKing(board, teamColor);
+        List<ChessPosition> enemyPiecePositions = SearchPieces(board, null, enemyColor);
 
         ChessPiece myKing = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
         for (ChessPosition enemyPosition : enemyPiecePositions) {
@@ -51,5 +49,34 @@ public class BoardStateCalculator {
             }
         }
         return pieces;
+    }
+
+    private ChessPosition FindKing(ChessBoard board, ChessGame.TeamColor color) {
+        List<ChessPosition> kingPositionList = SearchPieces(board, ChessPiece.PieceType.KING, color);
+        if (!kingPositionList.isEmpty()) {
+            return kingPositionList.getFirst();
+        }
+        return null;
+    }
+
+    public boolean IsInStalemateCalculator(ChessGame game, ChessBoard board, ChessGame.TeamColor teamColor) {
+        boolean inCheck = IsInCheckCalculator(board, teamColor);
+
+        if (!inCheck) {
+            return CannotMove(game, board, teamColor);
+        }
+        return false;
+    }
+
+    public boolean CannotMove(ChessGame game, ChessBoard board, ChessGame.TeamColor teamColor) {
+        List<ChessPosition> allTeamPositions = SearchPieces(board, null, teamColor);
+        int totalMoves = 0;
+        for (ChessPosition piecePosition : allTeamPositions) {
+            Collection<ChessMove> possibleMoves = game.validMoves(piecePosition);
+            if (!possibleMoves.isEmpty()) {
+                totalMoves += possibleMoves.size();
+            }
+        }
+        return totalMoves == 0;
     }
 }
