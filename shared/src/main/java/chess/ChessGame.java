@@ -163,19 +163,4 @@ public class ChessGame {
     public ChessBoard getBoard() {
         return board;
     }
-
-//    @Override
-//    public ChessGame clone() {
-//        try {
-//            ChessGame clone = (ChessGame) super.clone();
-//            // TODO: copy mutable state here, so the clone can't change the internals of the original
-//            ChessBoard clonedBoard = new ChessBoard();
-//            for (int i = 0; i < 8; i++) {
-//                clone[i] = Arrays.copyOf(clone[i]);
-//            }
-//            return clone;
-//        } catch (CloneNotSupportedException e) {
-//            throw new AssertionError();
-//        }
-//    }
 }
