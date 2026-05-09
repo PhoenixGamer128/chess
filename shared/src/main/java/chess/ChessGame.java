@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -13,13 +14,11 @@ public class ChessGame {
 
     TeamColor teamTurn;
     ChessBoard board;
-    BoardStateCalculator stateCalculator;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         teamTurn = TeamColor.WHITE;
-        stateCalculator = new BoardStateCalculator();
     }
 
     /**
@@ -54,21 +53,24 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        BoardStateCalculator stateCalculator = new BoardStateCalculator();
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> validPieceMoves;
         Collection<ChessMove> invalidPieceMoves = new HashSet<>();
+
         if (piece != null) {
             validPieceMoves = piece.pieceMoves(board, startPosition);
         } else {
             return null;
         }
+
         for (ChessMove move : validPieceMoves) {
             ChessBoard boardSimulation = board.clone();
 
             boardSimulation.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
             boardSimulation.addPiece(move.getStartPosition(), null);
 
-            if (stateCalculator.IsInCheckCalculator(boardSimulation, teamTurn)) {
+            if (stateCalculator.IsInCheckCalculator(boardSimulation, piece.getTeamColor())) {
                 invalidPieceMoves.add(move);
             }
         }
@@ -122,6 +124,7 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+        BoardStateCalculator stateCalculator = new BoardStateCalculator();
         return stateCalculator.IsInCheckCalculator(board, teamColor);
     }
 
@@ -132,6 +135,7 @@ public class ChessGame {
      * @return True if the specified team is in checkmate
      */
     public boolean isInCheckmate(TeamColor teamColor) {
+        BoardStateCalculator stateCalculator = new BoardStateCalculator();
         boolean inCheck = isInCheck(teamColor);
         boolean noMoves = stateCalculator.CannotMove(this, board, teamColor);
         return inCheck && noMoves;
@@ -145,6 +149,7 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
+        BoardStateCalculator stateCalculator = new BoardStateCalculator();
         return stateCalculator.IsInStalemateCalculator(this, board, teamColor);
     }
 
@@ -164,5 +169,20 @@ public class ChessGame {
      */
     public ChessBoard getBoard() {
         return board;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ChessGame chessGame = (ChessGame) o;
+        return teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(teamTurn, board);
     }
 }
