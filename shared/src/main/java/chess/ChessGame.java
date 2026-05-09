@@ -54,6 +54,7 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         BoardStateCalculator stateCalculator = new BoardStateCalculator();
+        SpecialMovesCalculator specialMovesCalculator = new SpecialMovesCalculator();
         ChessPiece piece = board.getPiece(startPosition);
         Collection<ChessMove> validPieceMoves;
         Collection<ChessMove> invalidPieceMoves = new HashSet<>();
@@ -67,6 +68,19 @@ public class ChessGame {
         for (ChessMove move : validPieceMoves) {
             ChessBoard boardSimulation = board.clone();
 
+            // castling branch
+            boolean canCastle = false;
+            boolean inCheck = isInCheck(piece.getTeamColor());
+            if (piece.getPieceType().equals(ChessPiece.PieceType.KING) && specialMovesCalculator.isCastleMove(move)) {
+                if (inCheck) {
+                    invalidPieceMoves.add(move);
+                } else {
+                    canCastle = specialMovesCalculator.canCastle(stateCalculator, boardSimulation, move);
+                }
+                if (!canCastle) {
+                    invalidPieceMoves.add(move);
+                }
+            }
             boardSimulation.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
             boardSimulation.addPiece(move.getStartPosition(), null);
 
@@ -89,6 +103,7 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPosition);
+        SpecialMovesCalculator specialMovesCalculator = new SpecialMovesCalculator();
 
         if (piece == null) {
             throw new InvalidMoveException("No piece at start position");
@@ -105,10 +120,35 @@ public class ChessGame {
             if (move.getPromotionPiece() != null) {
                 ChessPiece promotionPiece = new ChessPiece(teamTurn, move.getPromotionPiece());
                 board.addPiece(move.getEndPosition(), promotionPiece);
-            } else {
-                board.addPiece(move.getEndPosition(), board.getPiece(move.getStartPosition()));
-
             }
+            // Check for castling
+            else if (piece.getPieceType().equals(ChessPiece.PieceType.KING)
+                    && piece.getCanUseSpecial()
+                    && specialMovesCalculator.isCastleMove(move)) {
+
+                ChessPosition rookPosition;
+                ChessPosition newRookPosition;
+                if (move.getEndPosition().getColumn() == 3) {
+                    rookPosition = new ChessPosition(startPosition.getRow(), 1);
+                    newRookPosition = new ChessPosition(startPosition.getRow(), 4);
+                } else {
+                    rookPosition = new ChessPosition(startPosition.getRow(), 8);
+                    newRookPosition = new ChessPosition(startPosition.getRow(), 6);
+                }
+
+                if (board.getPiece(rookPosition).getCanUseSpecial()) {
+                    board.addPiece(move.getEndPosition(), piece);
+                    board.addPiece(newRookPosition, board.getPiece(rookPosition));
+                    board.addPiece(rookPosition, null);
+                    board.getPiece(move.getEndPosition()).setCanUseSpecial(false);
+                    board.getPiece(newRookPosition).setCanUseSpecial(false);
+                }
+
+            } else {
+                board.addPiece(move.getEndPosition(), piece);
+                piece.setCanUseSpecial(false);
+            }
+            // Finally...
             board.addPiece(move.getStartPosition(), null);
             teamTurn = teamTurn.equals(TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
             return;

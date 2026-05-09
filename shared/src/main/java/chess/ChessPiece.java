@@ -1,7 +1,6 @@
 package chess;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -14,10 +13,12 @@ public class ChessPiece{
 
     ChessGame.TeamColor pieceColor;
     ChessPiece.PieceType type;
+    boolean canUseSpecial;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.pieceColor = pieceColor;
         this.type = type;
+        canUseSpecial = false;
     }
 
     /**
@@ -59,9 +60,45 @@ public class ChessPiece{
         return calculator.CalculateMoves();
     }
 
+    public void initializeSpecial(ChessPosition startPosition) {
+        int expectedRow;
+        int expectedCol;
+        ChessPosition expectedPosition;
+        if (type.equals(PieceType.KING)) {
+            expectedRow = pieceColor.equals(ChessGame.TeamColor.WHITE) ? 1 : 8;
+            expectedCol = 5;
+            expectedPosition = new ChessPosition(expectedRow, expectedCol);
+            if (startPosition.equals(expectedPosition)) {
+                setCanUseSpecial(true);
+            }
+        } else if (type.equals(PieceType.ROOK)) {
+            expectedRow = pieceColor.equals(ChessGame.TeamColor.WHITE) ? 1 : 8;
+            expectedPosition = new ChessPosition(expectedRow, 1);
+            if (startPosition.equals(expectedPosition)) {
+                setCanUseSpecial(true);
+            }
+            expectedPosition = new ChessPosition(expectedRow, 8);
+            if (startPosition.equals(expectedPosition)) {
+                setCanUseSpecial(true);
+            }
+        }
+    }
+
+    public boolean getCanUseSpecial() {
+        return canUseSpecial;
+    }
+
+    public void setCanUseSpecial(boolean availability) {
+        canUseSpecial = availability;
+    }
+
     @Override
     public String toString() {
-        return String.format("%s", type);
+        String special = canUseSpecial ? "*" : "";
+        if (pieceColor.equals(ChessGame.TeamColor.BLACK)) {
+            return String.format("%s%s", type, special).toLowerCase();
+        }
+        return String.format("%s%s", type, special);
     }
 
     @Override
@@ -70,11 +107,11 @@ public class ChessPiece{
             return false;
         }
         ChessPiece that = (ChessPiece) o;
-        return pieceColor == that.pieceColor && type == that.type;
+        return canUseSpecial == that.canUseSpecial && pieceColor == that.pieceColor && type == that.type;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pieceColor, type);
+        return Objects.hash(pieceColor, type, canUseSpecial);
     }
 }

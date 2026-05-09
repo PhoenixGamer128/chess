@@ -122,6 +122,32 @@ public class PieceMovesCalculator {
         CheckAddMove(row - 1, col, null);
         CheckAddMove(row, col + 1, null);
         CheckAddMove(row, col - 1, null);
+
+        if (piece.canUseSpecial) {
+            // int castleRow = piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) ? 1 : 8;
+            boolean leftRookAvailable = false;
+            boolean rightRookAvailable = false;
+            int targetCol = 1;
+            for (int i = 0; i < 2; i++) {
+                ChessPosition position = new ChessPosition(row, targetCol);
+                ChessPiece piece = board.getPiece(position);
+                if (piece != null) {
+                    if (targetCol == 1) {
+                        leftRookAvailable = piece.canUseSpecial;
+                    }
+                    else {
+                        rightRookAvailable = piece.canUseSpecial;
+                    }
+                }
+                targetCol = 8;
+            }
+            if (leftRookAvailable) {
+                CheckAddMove(row, col - 2, null);
+            }
+            if (rightRookAvailable) {
+                CheckAddMove(row, col + 2, null);
+            }
+        }
     }
 
     private void KnightMoveCalculator() {

@@ -25,6 +25,9 @@ public class ChessBoard implements Cloneable{
      */
     public void addPiece(ChessPosition position, ChessPiece piece) {
         chessBoard[position.getRow()-1][position.getColumn()-1] = piece;
+        if (piece != null) {
+            piece.initializeSpecial(position);
+        }
     }
 
     /**
