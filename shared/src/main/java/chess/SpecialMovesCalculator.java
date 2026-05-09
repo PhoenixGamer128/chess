@@ -43,4 +43,34 @@ public class SpecialMovesCalculator {
         }
         return false;
     }
+
+    public void addEnPassantMoves(ChessGame game, ChessPosition startPosition, Collection<ChessMove> moves) {
+        ChessBoard board = game.getBoard();
+        ChessPiece piece = board.getPiece(startPosition);
+        int direction = piece.getTeamColor() == ChessGame.TeamColor.WHITE ? 1 : -1;
+        int row = startPosition.getRow();
+        int col = startPosition.getColumn();
+
+        if (!piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
+            return;
+        }
+        ChessPosition takeLeft = new ChessPosition(row + direction, col - 1);
+        ChessPosition takeRight = new ChessPosition(row + direction, col + 1);
+        SpecialMovesCalculator specialMovesCalculator = new SpecialMovesCalculator();
+        ChessPosition enPassantPosition = game.getEnPassantPosition();
+        if (enPassantPosition != null) {
+            if (game.getEnPassantPosition().equals(takeLeft)) {
+                if (board.getPiece(new ChessPosition(row + direction, col - 1)) == null) {
+                    ChessMove move = new ChessMove(startPosition, new ChessPosition(row + direction, col - 1), null);
+                    moves.add(move);
+                }
+            }
+            if (game.getEnPassantPosition().equals(takeRight)) {
+                if (board.getPiece(new ChessPosition(row + direction, col + 1)) == null) {
+                    ChessMove move = new ChessMove(startPosition, new ChessPosition(row + direction, col + 1), null);
+                    moves.add(move);
+                }
+            }
+        }
+    }
 }

@@ -116,7 +116,7 @@ public class ChessBoard implements Cloneable{
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(chessBoard);
+        return Objects.hash(Arrays.deepHashCode(chessBoard));
     }
 
     @Override

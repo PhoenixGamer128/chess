@@ -171,14 +171,17 @@ public class PieceMovesCalculator {
             firstMove = true;
         }
 
+        // Move Forward
         ChessPosition targetPosition = new ChessPosition(row + direction, col);
         if (board.getPiece(targetPosition) == null) {
             PawnAddPromotion(row + direction, col, piece.getTeamColor());
             targetPosition = new ChessPosition(row + (2 * direction), col);
+            // Add double-step
             if (firstMove && board.getPiece(targetPosition) == null) {
                 PawnAddPromotion(row + (2 * direction), col, piece.getTeamColor());
             }
         }
+        // Allow capturing diagonally
         targetPosition = new ChessPosition(row + direction, col - 1);
         if (board.getPiece(targetPosition) != null) {
             PawnAddPromotion(row + direction, col - 1, color);
@@ -187,6 +190,8 @@ public class PieceMovesCalculator {
         if (board.getPiece(targetPosition) != null) {
             PawnAddPromotion(row + direction, col + 1, color);
         }
+        // Check En Passant
+
     }
 
     private void PawnAddPromotion(int row, int col, ChessGame.TeamColor color) {
