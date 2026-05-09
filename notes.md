@@ -15,3 +15,13 @@ think that if I were to do it again (and I will
 for the practice exam and the actual programming
 exam), I would more strongly implement the
 one functionality rule.
+
+# Phase 1
+
+I learned quite a bit about general code optimization.
+There are several things in my code that is probably
+unnecessary, so I think the next time I start working
+on a big project like this is to design what I want
+my project to do and ask myself: is this really the
+best way to do what I want it to do, or is there a
+better way or is it unnecessary?
