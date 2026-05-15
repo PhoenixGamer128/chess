@@ -10,7 +10,7 @@ public class ClearService {
         this.userService = userService;
     }
 
-    public DeleteDBResult clear() throws ResponseException {
-        return userService.clearUsers();
+    public void clear() throws ResponseException {
+        userService.clearUsers();
     }
 }

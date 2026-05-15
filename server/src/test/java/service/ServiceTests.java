@@ -3,8 +3,6 @@ package service;
 import dataaccess.*;
 import model.UserData;
 
-
-import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.*;
 
 import java.util.HashMap;

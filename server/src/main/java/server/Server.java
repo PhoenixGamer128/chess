@@ -1,13 +1,11 @@
 package server;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryUserDAO;
 import dataaccess.ResponseException;
 import io.javalin.*;
 import io.javalin.http.Context;
-import model.DeleteDBResult;
 import model.UserData;
 import service.UserService;
 import service.ClearService;

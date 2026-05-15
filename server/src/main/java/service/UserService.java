@@ -43,9 +43,8 @@ public class UserService {
         }
     }
 
-    public DeleteDBResult clearUsers() throws ResponseException {
+    public void clearUsers() throws ResponseException {
         authDAO.clearAuths();
         userDAO.clearUsers();
-        return null;
     }
 }
