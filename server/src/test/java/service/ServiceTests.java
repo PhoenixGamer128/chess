@@ -42,6 +42,11 @@ public class ServiceTests {
         assertEquals(ResponseException.Code.AlreadyTaken, exception.code());
     }
 
+//    @Test LoginUser() {
+//        UserData userBob = new UserData("Bob","bob","bob@bob.com");
+//
+//    }
+
     @Test
     void ClearDataBase() throws ResponseException {
         HashMap<String, UserData> users = userService.listUsers();

@@ -9,7 +9,8 @@ public class ResponseException extends RuntimeException {
     public enum Code {
         AlreadyTaken,
         DataAccess,
-        BadRequest
+        BadRequest,
+        Unauthorized
     }
 
     Code code;
@@ -30,9 +31,10 @@ public class ResponseException extends RuntimeException {
 
     public int toHttpStatusCode(ResponseException ex) {
         return switch (ex.code()) {
-            case Code.AlreadyTaken -> 401;
+            case Code.AlreadyTaken -> 403;
             case Code.DataAccess -> 500;
             case Code.BadRequest -> 400;
+            case Code.Unauthorized -> 401;
         };
     }
 }

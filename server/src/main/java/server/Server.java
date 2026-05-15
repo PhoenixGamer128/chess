@@ -1,6 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import dataaccess.MemoryAuthDAO;
 import dataaccess.MemoryUserDAO;
 import dataaccess.ResponseException;
@@ -23,6 +24,7 @@ public class Server {
         this.clearService = new ClearService(userService);
 
         javalin.post("/user", this::registerUser)
+                .post("/session", this::loginUser)
                 .delete("/db", this::deleteDataBase)
                 .exception(ResponseException.class, this::exceptionHandler);
         // Register your endpoints and exception handlers here.
@@ -48,8 +50,14 @@ public class Server {
         ctx.result(new Gson().toJson(userService.register(user)));
     }
 
+    private void loginUser(Context ctx) {
+        UserData user = new Gson().fromJson(ctx.body(), UserData.class);
+        ctx.result(new Gson().toJson(userService.login(user)));
+    }
+
     private void deleteDataBase(Context ctx) {
         clearService.clear();
-        ctx.result(new Gson().toJson(""));
+        JsonObject emptyJson = new Gson().fromJson("{}", JsonObject.class);
+        ctx.result(new Gson().toJson(emptyJson));
     }
 }

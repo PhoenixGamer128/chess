@@ -2,8 +2,7 @@ package service;
 
 import dataaccess.*;
 import model.AuthData;
-import model.DeleteDBResult;
-import model.RegisterResponse;
+import model.SessionResponse;
 import model.UserData;
 
 // import javax.xml.crypto.Data;
@@ -19,18 +18,40 @@ public class UserService {
         this.authDAO = authDAO;
     }
 
-    public RegisterResponse register(UserData requestedUser) throws ResponseException {
-        if (requestedUser == null) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Bad request.");
-        }
+    public SessionResponse register(UserData requestedUser) throws ResponseException {
+        validateCredentials(requestedUser); // will throw an error if user input is syntactically incorrect
 
         if (userDAO.getUser(requestedUser) != null) {
-            throw new ResponseException(ResponseException.Code.AlreadyTaken, "Username already taken.");
+            throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: Username already taken.");
         }
 
         userDAO.createUser(requestedUser);
+        return login(requestedUser);
+    }
+
+    public SessionResponse login(UserData requestedUser) throws ResponseException {
+        validateCredentials(requestedUser);
+        UserData foundUser = userDAO.getUser(requestedUser);
+        // verify username and password
+        if (foundUser == null
+                || !(foundUser.username().equals(requestedUser.username())
+                && foundUser.password().equals(requestedUser.password()))) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
         AuthData newAuthData = authDAO.createAuth(requestedUser);
-        return new RegisterResponse(newAuthData.username(), newAuthData.authToken());
+        return new SessionResponse(newAuthData.username(), newAuthData.authToken());
+    }
+
+    private void validateCredentials(UserData requestedUser) throws ResponseException {
+        if (requestedUser == null) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Bad request.");
+        }
+        if (requestedUser.username() == null) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Username cannot be blank");
+        }
+        if (requestedUser.password() == null) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Password cannot be empty");
+        }
     }
 
     public HashMap<String, UserData> listUsers() {
