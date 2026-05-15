@@ -4,6 +4,7 @@ import model.AuthData;
 import model.UserData;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 public class MemoryAuthDAO implements AuthDAO {
@@ -26,5 +27,23 @@ public class MemoryAuthDAO implements AuthDAO {
 
     public boolean deleteAuth(AuthData authData) {
         return authTokens.remove(authData.authToken(), authData.username());
+    }
+
+    public void clearAuths() {
+        authTokens = new HashMap<>();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        MemoryAuthDAO that = (MemoryAuthDAO) o;
+        return Objects.equals(authTokens, that.authTokens);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(authTokens);
     }
 }

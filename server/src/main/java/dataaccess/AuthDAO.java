@@ -9,4 +9,6 @@ public interface AuthDAO {
     AuthData getAuth(AuthData authData) throws ResponseException;
 
     boolean deleteAuth(AuthData authData) throws ResponseException;
+
+    void clearAuths() throws ResponseException;
 }

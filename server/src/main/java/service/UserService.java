@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.*;
 import model.AuthData;
+import model.DeleteDBResult;
 import model.RegisterResponse;
 import model.UserData;
 
@@ -40,5 +41,11 @@ public class UserService {
             System.out.println(ex.getMessage());
             return null;
         }
+    }
+
+    public DeleteDBResult clearUsers() throws ResponseException {
+        authDAO.clearAuths();
+        userDAO.clearUsers();
+        return null;
     }
 }

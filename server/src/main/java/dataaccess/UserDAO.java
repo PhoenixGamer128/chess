@@ -13,4 +13,6 @@ public interface UserDAO {
 
     HashMap<String, UserData> listUsers() throws ResponseException;
 
+    void clearUsers() throws ResponseException;
+
 }
