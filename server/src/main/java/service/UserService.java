@@ -19,13 +19,17 @@ public class UserService {
     }
 
     public RegisterResponse register(UserData requestedUser) throws ResponseException {
+        if (requestedUser == null) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Bad request.");
+        }
+
         if (userDAO.getUser(requestedUser) != null) {
             throw new ResponseException(ResponseException.Code.AlreadyTaken, "Username already taken.");
         }
 
         userDAO.createUser(requestedUser);
         AuthData newAuthData = authDAO.createAuth(requestedUser);
-        return new RegisterResponse(newAuthData.authToken(), newAuthData.username());
+        return new RegisterResponse(newAuthData.username(), newAuthData.authToken());
     }
 
     public HashMap<String, UserData> listUsers() {

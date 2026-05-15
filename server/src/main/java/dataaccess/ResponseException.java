@@ -1,9 +1,15 @@
 package dataaccess;
 
+import com.google.gson.Gson;
+
+import java.util.Map;
+
 public class ResponseException extends RuntimeException {
 
     public enum Code {
-        AlreadyTaken
+        AlreadyTaken,
+        DataAccess,
+        BadRequest
     }
 
     Code code;
@@ -15,5 +21,18 @@ public class ResponseException extends RuntimeException {
 
     public Code code() {
         return code;
+    }
+
+    public String toJson() {
+        return new Gson().toJson(Map.of("message", getMessage()));
+    }
+
+
+    public int toHttpStatusCode(ResponseException ex) {
+        return switch (ex.code()) {
+            case Code.AlreadyTaken -> 401;
+            case Code.DataAccess -> 500;
+            case Code.BadRequest -> 400;
+        };
     }
 }
