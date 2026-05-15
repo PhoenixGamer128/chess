@@ -4,9 +4,9 @@ import model.AuthData;
 import model.UserData;
 
 public interface AuthDAO {
-    AuthData createAuth(UserData requestedUser) throws DataAccessException;
+    AuthData createAuth(UserData requestedUser) throws ResponseException;
 
-    AuthData getAuth(AuthData authData) throws DataAccessException;
+    AuthData getAuth(AuthData authData) throws ResponseException;
 
-    boolean deleteAuth(AuthData authData) throws DataAccessException;
+    boolean deleteAuth(AuthData authData) throws ResponseException;
 }
