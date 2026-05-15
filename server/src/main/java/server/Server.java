@@ -25,6 +25,7 @@ public class Server {
 
         javalin.post("/user", this::registerUser)
                 .post("/session", this::loginUser)
+                .delete("/session", this::logoutUser)
                 .delete("/db", this::deleteDataBase)
                 .exception(ResponseException.class, this::exceptionHandler);
         // Register your endpoints and exception handlers here.
@@ -53,6 +54,13 @@ public class Server {
     private void loginUser(Context ctx) {
         UserData user = new Gson().fromJson(ctx.body(), UserData.class);
         ctx.result(new Gson().toJson(userService.login(user)));
+    }
+
+    private void logoutUser(Context ctx) {
+        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        userService.logout(authToken);
+        JsonObject emptyJson = new Gson().fromJson("{}", JsonObject.class);
+        ctx.result(new Gson().toJson(emptyJson));
     }
 
     private void deleteDataBase(Context ctx) {

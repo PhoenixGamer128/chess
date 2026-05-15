@@ -1,7 +1,6 @@
 package service;
 
 import dataaccess.ResponseException;
-import model.DeleteDBResult;
 
 public class ClearService {
     UserService userService;

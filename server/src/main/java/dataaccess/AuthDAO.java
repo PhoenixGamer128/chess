@@ -10,5 +10,7 @@ public interface AuthDAO {
 
     boolean deleteAuth(AuthData authData) throws ResponseException;
 
+    AuthData findUser(String authToken);
+
     void clearAuths() throws ResponseException;
 }

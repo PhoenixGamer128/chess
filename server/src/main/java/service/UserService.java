@@ -21,6 +21,7 @@ public class UserService {
     public SessionResponse register(UserData requestedUser) throws ResponseException {
         validateCredentials(requestedUser); // will throw an error if user input is syntactically incorrect
 
+        // Will return null only if no user has the requested username
         if (userDAO.getUser(requestedUser) != null) {
             throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: Username already taken.");
         }
@@ -31,6 +32,7 @@ public class UserService {
 
     public SessionResponse login(UserData requestedUser) throws ResponseException {
         validateCredentials(requestedUser);
+
         UserData foundUser = userDAO.getUser(requestedUser);
         // verify username and password
         if (foundUser == null
@@ -38,6 +40,7 @@ public class UserService {
                 && foundUser.password().equals(requestedUser.password()))) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
+        // give user an authToken
         AuthData newAuthData = authDAO.createAuth(requestedUser);
         return new SessionResponse(newAuthData.username(), newAuthData.authToken());
     }
@@ -52,6 +55,14 @@ public class UserService {
         if (requestedUser.password() == null) {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: Password cannot be empty");
         }
+    }
+
+    public void logout(String authToken) throws ResponseException {
+        AuthData requestedUserAuth = authDAO.findUser(authToken);
+        if (requestedUserAuth.username() == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+        authDAO.deleteAuth(requestedUserAuth);
     }
 
     public HashMap<String, UserData> listUsers() {

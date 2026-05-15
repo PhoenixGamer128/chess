@@ -1,6 +1,8 @@
 package service;
 
 import dataaccess.*;
+import model.AuthData;
+import model.SessionResponse;
 import model.UserData;
 
 import org.junit.jupiter.api.*;
@@ -42,10 +44,16 @@ public class ServiceTests {
         assertEquals(ResponseException.Code.AlreadyTaken, exception.code());
     }
 
-//    @Test LoginUser() {
-//        UserData userBob = new UserData("Bob","bob","bob@bob.com");
-//
-//    }
+    @Test
+    void LoginUser() throws ResponseException{
+        UserData userBob = new UserData("Bob","bob","bob@bob.com");
+        // register bob
+        // logout bob
+        // do something that requires an auth token
+        // login bob
+        // do something that requires an auth token
+        assertEquals("Bob",userBob.username());
+    }
 
     @Test
     void ClearDataBase() throws ResponseException {
