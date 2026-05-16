@@ -58,11 +58,15 @@ public class UserService {
     }
 
     public void logout(String authToken) throws ResponseException {
-        AuthData requestedUserAuth = authDAO.findUser(authToken);
+        AuthData requestedUserAuth = authDAO.getAuth(authToken);
         if (requestedUserAuth.username() == null) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
         authDAO.deleteAuth(requestedUserAuth);
+    }
+
+    public boolean validAuthToken(String authToken) {
+        return (authDAO.getAuth(authToken).username() != null);
     }
 
     public HashMap<String, UserData> listUsers() {
