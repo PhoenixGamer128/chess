@@ -9,7 +9,6 @@ import model.GameID;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 public class GameService {
 
@@ -22,17 +21,14 @@ public class GameService {
     }
 
     public GameID createGame(CreateGameRequest requestedGame) throws ResponseException {
-        // Validate is logged in
-        String authToken = requestedGame.authToken();
-        if (!(userService.validAuthToken(authToken))) {
-            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
-        }
-        if (requestedGame.gameName() == null) {
+        // Validate request
+        validateAuthToken(requestedGame.authToken());
+        if (requestedGame.gameName() == null || requestedGame.gameName().isEmpty()) {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty.");
         }
 
         // Find valid gameID
-        HashMap<Integer, GameData> gameList = listGames();
+        HashMap<Integer, GameData> gameList = listGamesObjects();
         int gameID = 1;
         while (gameList.containsKey(gameID)) {gameID++;}
 
@@ -44,12 +40,19 @@ public class GameService {
         return new GameID(gameID);
     }
 
-    public Collection<GameData> listGameData() {
+    public Collection<GameData> listGames(String authToken) {
+        validateAuthToken(authToken);
         return gameDAO.listGames().values();
     }
 
-    public HashMap<Integer, GameData> listGames() {
+    public HashMap<Integer, GameData> listGamesObjects() {
         return gameDAO.listGames();
+    }
+
+    private void validateAuthToken(String authToken) {
+        if (!(userService.validAuthToken(authToken))) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
     }
 
     public void clearGames() {

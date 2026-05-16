@@ -33,6 +33,7 @@ public class Server {
                 .post("/session", this::loginUser)
                 .delete("/session", this::logoutUser)
                 .post("/game", this::createGame)
+                .get("/game", this::listGames)
                 .delete("/db", this::deleteDataBase)
                 .exception(ResponseException.class, this::exceptionHandler);
         // Register your endpoints and exception handlers here.
@@ -75,6 +76,11 @@ public class Server {
         GameData requestedName = new Gson().fromJson(ctx.body(), GameData.class);
         CreateGameRequest gameRequest = new CreateGameRequest(authToken, requestedName.gameName());
         ctx.result(new Gson().toJson(gameService.createGame(gameRequest)));
+    }
+
+    private void listGames(Context ctx) {
+        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        ctx.result(new Gson().toJson(gameService.listGames(authToken)));
     }
 
     private void deleteDataBase(Context ctx) {

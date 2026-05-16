@@ -1,9 +1,7 @@
 package service;
 
 import dataaccess.*;
-import model.AuthData;
 import model.CreateGameRequest;
-import model.SessionResponse;
 import model.UserData;
 
 import org.junit.jupiter.api.*;
@@ -56,13 +54,13 @@ public class ServiceTests {
     @Test
     void CreateGames() throws ResponseException {
         gameService.createGame(new CreateGameRequest(registeredAuth, "game1"));
-        assertEquals(1, gameService.listGames().size());
+        assertEquals(1, gameService.listGamesObjects().size());
 
         gameService.createGame(new CreateGameRequest(registeredAuth, "game2"));
-        assertEquals(2, gameService.listGames().size());
+        assertEquals(2, gameService.listGamesObjects().size());
 
         clearService.clear();
-        assertEquals(0, gameService.listGames().size());
+        assertEquals(0, gameService.listGamesObjects().size());
     }
 
     @Test
