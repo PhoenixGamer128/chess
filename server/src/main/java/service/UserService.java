@@ -79,6 +79,10 @@ public class UserService {
         }
     }
 
+    public AuthData getUser(String authToken) {
+        return authDAO.getAuth(authToken);
+    }
+
     public void clearUsers() throws ResponseException {
         authDAO.clearAuths();
         userDAO.clearUsers();

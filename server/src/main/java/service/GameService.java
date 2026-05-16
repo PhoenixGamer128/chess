@@ -3,12 +3,12 @@ package service;
 import chess.ChessGame;
 import dataaccess.GameDAO;
 import dataaccess.ResponseException;
-import model.CreateGameRequest;
-import model.GameData;
-import model.GameID;
+import model.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 public class GameService {
 
@@ -28,24 +28,78 @@ public class GameService {
         }
 
         // Find valid gameID
-        HashMap<Integer, GameData> gameList = listGamesObjects();
+        ArrayList<GameData> gameList = listGamesObjects();
         int gameID = 1;
-        while (gameList.containsKey(gameID)) {gameID++;}
+        for (GameData game : gameList) {
+            if (game.gameID() != gameID) {
+                break;
+            }
+            gameID++;
+        }
 
         // Create new game
         ChessGame chessGame = new ChessGame();
-        GameData newGame = new GameData(new GameID(gameID), "", "", requestedGame.gameName(),chessGame);
-        gameDAO.addGame(gameID, newGame);
+        GameData newGame = new GameData(gameID, null, null, requestedGame.gameName(),chessGame);
+        gameDAO.createGame(gameID, newGame);
 
         return new GameID(gameID);
     }
 
-    public Collection<GameData> listGames(String authToken) {
-        validateAuthToken(authToken);
-        return gameDAO.listGames().values();
+    public void joinGame(JoinGameRequest gameRequest) {
+        // validation
+        validateAuthToken(gameRequest.authToken());
+        String username = userService.getUser(gameRequest.authToken()).username();
+        JoinGameData gameData = gameRequest.joinGameData();
+        validateJoinSyntax(gameData); // validate user input and gameID
+
+        validateAndJoinGame(gameData, username);
     }
 
-    public HashMap<Integer, GameData> listGamesObjects() {
+    private void validateJoinSyntax(JoinGameData gameData) {
+        // Check user input
+        if (gameData == null
+                || gameData.playerColor() == null
+                || gameData.gameID() == null) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Bad request");
+
+        }
+    }
+
+    private void validateAndJoinGame(JoinGameData gameToJoin, String username) {
+        // Check if game (still) exists
+        GameData requestedGame = gameDAO.getGame(gameToJoin.gameID());
+        if (requestedGame == null) {
+            throw new ResponseException(ResponseException.Code.BadRequest, "Bad request");
+        }
+
+        ChessGame.TeamColor requestedColor = gameToJoin.playerColor();
+
+        if (requestedColor == ChessGame.TeamColor.WHITE && requestedGame.whiteUsername() == null) {
+            gameDAO.updateGame(requestedGame, new GameData(
+                    requestedGame.gameID(),
+                    username,
+                    requestedGame.blackUsername(),
+                    requestedGame.gameName(),
+                    requestedGame.game()
+            ));
+        }
+        if (requestedColor == ChessGame.TeamColor.BLACK && requestedGame.blackUsername() == null) {
+            gameDAO.updateGame(requestedGame, new GameData(
+                    requestedGame.gameID(),
+                    requestedGame.whiteUsername(),
+                    username,
+                    requestedGame.gameName(),
+                    requestedGame.game()
+            ));
+        }
+    }
+
+    public GameList listGames(String authToken) {
+        validateAuthToken(authToken);
+        return new GameList(gameDAO.listGames());
+    }
+
+    public ArrayList<GameData> listGamesObjects() {
         return gameDAO.listGames();
     }
 
@@ -56,6 +110,6 @@ public class GameService {
     }
 
     public void clearGames() {
-        gameDAO.clearGames();;
+        gameDAO.clearGames();
     }
 }

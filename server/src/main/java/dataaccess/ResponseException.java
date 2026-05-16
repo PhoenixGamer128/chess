@@ -10,7 +10,8 @@ public class ResponseException extends RuntimeException {
         AlreadyTaken,
         DataAccess,
         BadRequest,
-        Unauthorized
+        Unauthorized,
+        NotFound
     }
 
     Code code;
@@ -35,6 +36,7 @@ public class ResponseException extends RuntimeException {
             case Code.DataAccess -> 500;
             case Code.BadRequest -> 400;
             case Code.Unauthorized -> 401;
+            case Code.NotFound -> 404;
         };
     }
 }
