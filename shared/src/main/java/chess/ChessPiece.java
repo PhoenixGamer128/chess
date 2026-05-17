@@ -56,8 +56,8 @@ public class ChessPiece{
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         PieceMovesCalculator calculator = new PieceMovesCalculator();
-        calculator.Begin(board, myPosition);
-        return calculator.CalculateMoves();
+        calculator.begin(board, myPosition);
+        return calculator.calculateMoves();
     }
 
     public void initializeSpecial(ChessPosition startPosition) {

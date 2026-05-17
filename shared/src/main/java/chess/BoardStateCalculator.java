@@ -10,11 +10,11 @@ public class BoardStateCalculator {
 
     }
 
-    public boolean IsInCheckCalculator(ChessBoard board, ChessGame.TeamColor teamColor) {
+    public boolean isInCheckCalculator(ChessBoard board, ChessGame.TeamColor teamColor) {
         ChessGame.TeamColor enemyColor = teamColor == ChessGame.TeamColor.WHITE ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
 
-        ChessPosition kingPosition = FindKing(board, teamColor);
-        List<ChessPosition> enemyPiecePositions = SearchPieces(board, null, enemyColor);
+        ChessPosition kingPosition = findKing(board, teamColor);
+        List<ChessPosition> enemyPiecePositions = searchPieces(board, null, enemyColor);
 
         ChessPiece myKing = new ChessPiece(teamColor, ChessPiece.PieceType.KING);
         for (ChessPosition enemyPosition : enemyPiecePositions) {
@@ -29,7 +29,10 @@ public class BoardStateCalculator {
         return false;
     }
 
-    private List<ChessPosition> SearchPieces(ChessBoard board, ChessPiece.PieceType targetPieceType, ChessGame.TeamColor color) {
+    private List<ChessPosition> searchPieces(ChessBoard board,
+                                             ChessPiece.PieceType targetPieceType,
+                                             ChessGame.TeamColor color) {
+
         List<ChessPosition> pieces = new ArrayList<>();
 
         for (int row = 1; row <= 8; row++) {
@@ -37,13 +40,12 @@ public class BoardStateCalculator {
                 ChessPosition position = new ChessPosition(row, col);
                 ChessPiece piece = board.getPiece(position);
 
-                if (piece != null) {
-                    if (piece.getTeamColor().equals(color)) {
-                        if (targetPieceType == null) {
-                            pieces.add(position);
-                        } else if (targetPieceType.equals(piece.getPieceType())) {
-                            pieces.add(position);
-                        }
+                if (piece != null && piece.getTeamColor().equals(color)) {
+                    if (targetPieceType == null) {
+                        pieces.add(position);
+                    }
+                    else if (targetPieceType.equals(piece.getPieceType())) {
+                        pieces.add(position);
                     }
                 }
             }
@@ -51,25 +53,25 @@ public class BoardStateCalculator {
         return pieces;
     }
 
-    private ChessPosition FindKing(ChessBoard board, ChessGame.TeamColor color) {
-        List<ChessPosition> kingPositionList = SearchPieces(board, ChessPiece.PieceType.KING, color);
+    private ChessPosition findKing(ChessBoard board, ChessGame.TeamColor color) {
+        List<ChessPosition> kingPositionList = searchPieces(board, ChessPiece.PieceType.KING, color);
         if (!kingPositionList.isEmpty()) {
             return kingPositionList.getFirst();
         }
         return null;
     }
 
-    public boolean IsInStalemateCalculator(ChessGame game, ChessBoard board, ChessGame.TeamColor teamColor) {
-        boolean inCheck = IsInCheckCalculator(board, teamColor);
+    public boolean isInStalemateCalculator(ChessGame game, ChessBoard board, ChessGame.TeamColor teamColor) {
+        boolean inCheck = isInCheckCalculator(board, teamColor);
 
         if (!inCheck) {
-            return CannotMove(game, board, teamColor);
+            return cannotMove(game, board, teamColor);
         }
         return false;
     }
 
-    public boolean CannotMove(ChessGame game, ChessBoard board, ChessGame.TeamColor teamColor) {
-        List<ChessPosition> allTeamPositions = SearchPieces(board, null, teamColor);
+    public boolean cannotMove(ChessGame game, ChessBoard board, ChessGame.TeamColor teamColor) {
+        List<ChessPosition> allTeamPositions = searchPieces(board, null, teamColor);
         int totalMoves = 0;
         for (ChessPosition piecePosition : allTeamPositions) {
             Collection<ChessMove> possibleMoves = game.validMoves(piecePosition);

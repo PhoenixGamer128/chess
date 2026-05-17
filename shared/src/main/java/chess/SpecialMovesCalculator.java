@@ -31,14 +31,14 @@ public class SpecialMovesCalculator {
             ChessPosition midPosition = new ChessPosition(startPosition.getRow(), midColumn);
             boardSimulation.addPiece(midPosition, piece);
             boardSimulation.addPiece(startPosition, null);
-            if (stateCalculator.IsInCheckCalculator(boardSimulation, piece.getTeamColor())) {
+            if (stateCalculator.isInCheckCalculator(boardSimulation, piece.getTeamColor())) {
                 return false;
             }
             // Simulate post-move check
             else {
                 boardSimulation.addPiece(move.getEndPosition(), piece);
                 boardSimulation.addPiece(midPosition, null);
-                return !stateCalculator.IsInCheckCalculator(boardSimulation, piece.getTeamColor());
+                return !stateCalculator.isInCheckCalculator(boardSimulation, piece.getTeamColor());
             }
         }
         return false;

@@ -19,13 +19,13 @@ public class ServiceTests {
     String registeredAuth;
 
     @BeforeEach
-    void SetUp() throws ResponseException  {
+    void setUp() throws ResponseException  {
         clearService.clear();
         registeredAuth = userService.register(registeredUser).authToken();
     }
 
     @Test
-    void RegisterUser() throws ResponseException {
+    void registerUser() throws ResponseException {
         // Add two different users
         UserData userAlice = new UserData("Alice", "alice", "alice@alice.com");
 
@@ -35,7 +35,7 @@ public class ServiceTests {
     }
 
     @Test
-    void RegisterTakenUser() throws ResponseException {
+    void registerTakenUser() throws ResponseException {
         // Add different users with identical usernames
         UserData usernameTakenUser = new UserData("Bob","banana","billy@joe.com");
         ResponseException exception = assertThrows(ResponseException.class, () -> userService.register(usernameTakenUser));
@@ -43,20 +43,20 @@ public class ServiceTests {
     }
 
     @Test
-    void LoginUser() throws ResponseException {
+    void loginUser() throws ResponseException {
         userService.logout(registeredAuth);
         assertEquals(1, userService.listUsers().size());
     }
 
     @Test
-    void LoginUserUnauthorized() throws ResponseException {
+    void loginUserUnauthorized() throws ResponseException {
         UserData userAlice = new UserData("Alice", "alice", "alice@alice.com");
         ResponseException ex = assertThrows(ResponseException.class, () -> userService.login(userAlice));
         assertEquals(ResponseException.Code.Unauthorized, ex.code());
     }
 
     @Test
-    void LogoutUser() throws ResponseException  {
+    void logoutUser() throws ResponseException  {
         userService.logout(registeredAuth);
         CreateGameRequest gameRequest = new CreateGameRequest(registeredAuth, "game1");
         ResponseException ex = assertThrows(ResponseException.class, () -> gameService.createGame(gameRequest));
@@ -64,14 +64,14 @@ public class ServiceTests {
     }
 
     @Test
-    void LogoutTwice() throws ResponseException {
+    void logoutTwice() throws ResponseException {
         userService.logout(registeredAuth);
         ResponseException ex = assertThrows(ResponseException.class, () -> userService.logout(registeredAuth));
         assertEquals(ResponseException.Code.Unauthorized, ex.code());
     }
 
     @Test
-    void ListGames() throws ResponseException {
+    void listGames() throws ResponseException {
         assertEquals(0,gameService.listGames(registeredAuth).games().size());
         CreateGameRequest gameRequest = new CreateGameRequest(registeredAuth, "game1");
         gameService.createGame(gameRequest);
@@ -79,14 +79,14 @@ public class ServiceTests {
     }
 
     @Test
-    void ListGamesNoAuth() throws ResponseException {
+    void listGamesNoAuth() throws ResponseException {
         userService.logout(registeredAuth);
         ResponseException ex = assertThrows(ResponseException.class, () -> gameService.listGames(registeredAuth));
         assertEquals(ResponseException.Code.Unauthorized, ex.code());
     }
 
     @Test
-    void CreateGames() throws ResponseException {
+    void createGames() throws ResponseException {
         gameService.createGame(new CreateGameRequest(registeredAuth, "game1"));
         assertEquals(1, gameService.listGamesObjects().size());
 
@@ -98,21 +98,21 @@ public class ServiceTests {
     }
 
     @Test
-    void CreateGameNoAuth() throws  ResponseException {
+    void createGameNoAuth() throws  ResponseException {
         CreateGameRequest gameRequest = new CreateGameRequest("", "game1");
         ResponseException ex = assertThrows(ResponseException.class, () -> gameService.createGame(gameRequest));
         assertEquals(ResponseException.Code.Unauthorized, ex.code());
     }
 
     @Test
-    void CreateGameNoName() throws ResponseException {
+    void createGameNoName() throws ResponseException {
         CreateGameRequest gameRequest = new CreateGameRequest(registeredAuth, "");
         ResponseException ex = assertThrows(ResponseException.class, () -> gameService.createGame(gameRequest));
         assertEquals(ResponseException.Code.BadRequest, ex.code());
     }
 
     @Test
-    void JoinTwoPlayers() throws ResponseException {
+    void joinTwoPlayers() throws ResponseException {
         // Join Bob as white
         gameService.createGame(new CreateGameRequest(registeredAuth, "game1"));
         assertEquals(1, gameService.listGamesObjects().size());
@@ -134,7 +134,7 @@ public class ServiceTests {
     }
 
     @Test
-    void JoinSameColor() {
+    void joinSameColor() {
         // Join Bob as white
         gameService.createGame(new CreateGameRequest(registeredAuth, "game1"));
         assertEquals(1, gameService.listGamesObjects().size());
@@ -155,7 +155,7 @@ public class ServiceTests {
     }
 
     @Test
-    void ClearDataBase() throws ResponseException {
+    void clearDataBase() throws ResponseException {
         HashMap<String, UserData> users = userService.listUsers();
         assertEquals(1, users.size());
         // programmatically add multiple users

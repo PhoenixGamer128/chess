@@ -96,7 +96,7 @@ public class ChessGame {
             boardSimulation.addPiece(move.getEndPosition(), piece);
             boardSimulation.addPiece(move.getStartPosition(), null);
 
-            if (stateCalculator.IsInCheckCalculator(boardSimulation, piece.getTeamColor())) {
+            if (stateCalculator.isInCheckCalculator(boardSimulation, piece.getTeamColor())) {
                 invalidPieceMoves.add(move);
             }
         }
@@ -204,7 +204,7 @@ public class ChessGame {
      */
     public boolean isInCheck(TeamColor teamColor) {
         BoardStateCalculator stateCalculator = new BoardStateCalculator();
-        return stateCalculator.IsInCheckCalculator(board, teamColor);
+        return stateCalculator.isInCheckCalculator(board, teamColor);
     }
 
     /**
@@ -216,7 +216,7 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         BoardStateCalculator stateCalculator = new BoardStateCalculator();
         boolean inCheck = isInCheck(teamColor);
-        boolean noMoves = stateCalculator.CannotMove(this, board, teamColor);
+        boolean noMoves = stateCalculator.cannotMove(this, board, teamColor);
         return inCheck && noMoves;
     }
 
@@ -229,7 +229,7 @@ public class ChessGame {
      */
     public boolean isInStalemate(TeamColor teamColor) {
         BoardStateCalculator stateCalculator = new BoardStateCalculator();
-        return stateCalculator.IsInStalemateCalculator(this, board, teamColor);
+        return stateCalculator.isInStalemateCalculator(this, board, teamColor);
     }
 
     /**
@@ -264,7 +264,9 @@ public class ChessGame {
             return false;
         }
         ChessGame chessGame = (ChessGame) o;
-        return teamTurn == chessGame.teamTurn && Objects.equals(board, chessGame.board) && Objects.equals(enPassantPosition, chessGame.enPassantPosition);
+        return teamTurn == chessGame.teamTurn
+                && Objects.equals(board, chessGame.board)
+                && Objects.equals(enPassantPosition, chessGame.enPassantPosition);
     }
 
     @Override

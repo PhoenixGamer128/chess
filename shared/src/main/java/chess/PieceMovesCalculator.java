@@ -12,7 +12,7 @@ public class PieceMovesCalculator {
     int row;
     int col;
 
-    public void Begin(ChessBoard board, ChessPosition position) {
+    public void begin(ChessBoard board, ChessPosition position) {
         moveSet = new HashSet<>();
         this.board = board;
         startPosition = position;
@@ -21,26 +21,26 @@ public class PieceMovesCalculator {
         col = position.getColumn();
     }
 
-    public Collection<ChessMove> CalculateMoves() {
+    public Collection<ChessMove> calculateMoves() {
         ChessPiece.PieceType type = piece.getPieceType();
         if (type == ChessPiece.PieceType.BISHOP) {
-            BishopMoveCalculator();
+            bishopMoveCalculator();
         } else if (type == ChessPiece.PieceType.ROOK) {
-            RookMoveCalculator();
+            rookMoveCalculator();
         } else if (type == ChessPiece.PieceType.QUEEN) {
-            BishopMoveCalculator();
-            RookMoveCalculator();
+            bishopMoveCalculator();
+            rookMoveCalculator();
         } else if (type == ChessPiece.PieceType.KING) {
-            KingMoveCalculator();
+            kingMoveCalculator();
         } else if (type == ChessPiece.PieceType.KNIGHT) {
-            KnightMoveCalculator();
+            knightMoveCalculator();
         } else if (type == ChessPiece.PieceType.PAWN) {
-            PawnMoveCalculator();
+            pawnMoveCalculator();
         }
         return moveSet;
     }
 
-    private boolean CheckInBounds(int row, int col) {
+    private boolean checkInBounds(int row, int col) {
         boolean inRow = (row >= 1 && row <= 8);
         boolean inCol = (col >= 1 && col <= 8);
         return inRow && inCol;
@@ -48,7 +48,7 @@ public class PieceMovesCalculator {
 
     private boolean CheckAddMove(int row, int col, ChessPiece.PieceType promotionPiece) {
         ChessPosition targetPosition = new ChessPosition(row, col);
-        if (!CheckInBounds(row, col)) {
+        if (!checkInBounds(row, col)) {
             return false;
         }
         if (board.getPiece(targetPosition) == null) {
@@ -65,12 +65,12 @@ public class PieceMovesCalculator {
         return false;
     }
 
-    private void CardinalMoveCalculator(int dirRow, int dirCol) {
+    private void cardinalMoveCalculator(int dirRow, int dirCol) {
         int distance = 1;
         int targetRow = row + (distance * dirRow);
         int targetCol = col + (distance * dirCol);
 
-        while (CheckInBounds(targetRow, targetCol)) {
+        while (checkInBounds(targetRow, targetCol)) {
             if (!CheckAddMove(targetRow, targetCol, null)) {
                 break;
             }
@@ -80,11 +80,11 @@ public class PieceMovesCalculator {
         }
     }
 
-    private void BishopMoveCalculator() {
+    private void bishopMoveCalculator() {
         int dirRow = 1;
         int dirCol = 1;
         for (int i = 0; i < 4; i++) {
-            CardinalMoveCalculator(dirRow, dirCol);
+            cardinalMoveCalculator(dirRow, dirCol);
             if (dirRow == 1 && dirCol == 1) {
                 dirCol = -1;
             } else if (dirRow == 1 && dirCol == -1) {
@@ -95,11 +95,11 @@ public class PieceMovesCalculator {
         }
     }
 
-    private void RookMoveCalculator() {
+    private void rookMoveCalculator() {
         int dirRow = 0;
         int dirCol = 1;
         for(int i = 0; i < 4; i++) {
-            CardinalMoveCalculator(dirRow, dirCol);
+            cardinalMoveCalculator(dirRow, dirCol);
             if (dirRow == 0 && dirCol == 1) {
                 dirRow = 1;
                 dirCol = 0;
@@ -113,7 +113,7 @@ public class PieceMovesCalculator {
         }
     }
 
-    private void KingMoveCalculator() {
+    private void kingMoveCalculator() {
         CheckAddMove(row + 1, col + 1, null);
         CheckAddMove(row + 1, col - 1, null);
         CheckAddMove(row - 1, col + 1, null);
@@ -150,7 +150,7 @@ public class PieceMovesCalculator {
         }
     }
 
-    private void KnightMoveCalculator() {
+    private void knightMoveCalculator() {
         CheckAddMove(row + 2, col + 1, null);
         CheckAddMove(row + 2, col - 1, null);
         CheckAddMove(row - 2, col + 1, null);
@@ -161,7 +161,7 @@ public class PieceMovesCalculator {
         CheckAddMove(row - 1, col - 2, null);
     }
 
-    private void PawnMoveCalculator() {
+    private void pawnMoveCalculator() {
         ChessGame.TeamColor color = piece.getTeamColor();
         boolean firstMove = false;
         int direction = piece.getTeamColor() == ChessGame.TeamColor.WHITE ? 1 : -1;
@@ -174,27 +174,27 @@ public class PieceMovesCalculator {
         // Move Forward
         ChessPosition targetPosition = new ChessPosition(row + direction, col);
         if (board.getPiece(targetPosition) == null) {
-            PawnAddPromotion(row + direction, col, piece.getTeamColor());
+            pawnAddPromotion(row + direction, col, piece.getTeamColor());
             targetPosition = new ChessPosition(row + (2 * direction), col);
             // Add double-step
             if (firstMove && board.getPiece(targetPosition) == null) {
-                PawnAddPromotion(row + (2 * direction), col, piece.getTeamColor());
+                pawnAddPromotion(row + (2 * direction), col, piece.getTeamColor());
             }
         }
         // Allow capturing diagonally
         targetPosition = new ChessPosition(row + direction, col - 1);
         if (board.getPiece(targetPosition) != null) {
-            PawnAddPromotion(row + direction, col - 1, color);
+            pawnAddPromotion(row + direction, col - 1, color);
         }
         targetPosition = new ChessPosition(row + direction, col + 1);
         if (board.getPiece(targetPosition) != null) {
-            PawnAddPromotion(row + direction, col + 1, color);
+            pawnAddPromotion(row + direction, col + 1, color);
         }
         // Check En Passant
 
     }
 
-    private void PawnAddPromotion(int row, int col, ChessGame.TeamColor color) {
+    private void pawnAddPromotion(int row, int col, ChessGame.TeamColor color) {
         ChessPiece.PieceType[] promotionPieces;
         if ((row == 8 && color == ChessGame.TeamColor.WHITE)
                 || row == 1 && color == ChessGame.TeamColor.BLACK) {
