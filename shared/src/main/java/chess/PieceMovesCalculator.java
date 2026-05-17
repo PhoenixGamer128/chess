@@ -46,7 +46,7 @@ public class PieceMovesCalculator {
         return inRow && inCol;
     }
 
-    private boolean CheckAddMove(int row, int col, ChessPiece.PieceType promotionPiece) {
+    private boolean checkAddMove(int row, int col, ChessPiece.PieceType promotionPiece) {
         ChessPosition targetPosition = new ChessPosition(row, col);
         if (!checkInBounds(row, col)) {
             return false;
@@ -71,7 +71,7 @@ public class PieceMovesCalculator {
         int targetCol = col + (distance * dirCol);
 
         while (checkInBounds(targetRow, targetCol)) {
-            if (!CheckAddMove(targetRow, targetCol, null)) {
+            if (!checkAddMove(targetRow, targetCol, null)) {
                 break;
             }
             distance++;
@@ -114,14 +114,14 @@ public class PieceMovesCalculator {
     }
 
     private void kingMoveCalculator() {
-        CheckAddMove(row + 1, col + 1, null);
-        CheckAddMove(row + 1, col - 1, null);
-        CheckAddMove(row - 1, col + 1, null);
-        CheckAddMove(row - 1, col - 1, null);
-        CheckAddMove(row + 1, col, null);
-        CheckAddMove(row - 1, col, null);
-        CheckAddMove(row, col + 1, null);
-        CheckAddMove(row, col - 1, null);
+        checkAddMove(row + 1, col + 1, null);
+        checkAddMove(row + 1, col - 1, null);
+        checkAddMove(row - 1, col + 1, null);
+        checkAddMove(row - 1, col - 1, null);
+        checkAddMove(row + 1, col, null);
+        checkAddMove(row - 1, col, null);
+        checkAddMove(row, col + 1, null);
+        checkAddMove(row, col - 1, null);
 
         if (piece.canUseSpecial) {
             // int castleRow = piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) ? 1 : 8;
@@ -142,23 +142,23 @@ public class PieceMovesCalculator {
                 targetCol = 8;
             }
             if (leftRookAvailable) {
-                CheckAddMove(row, col - 2, null);
+                checkAddMove(row, col - 2, null);
             }
             if (rightRookAvailable) {
-                CheckAddMove(row, col + 2, null);
+                checkAddMove(row, col + 2, null);
             }
         }
     }
 
     private void knightMoveCalculator() {
-        CheckAddMove(row + 2, col + 1, null);
-        CheckAddMove(row + 2, col - 1, null);
-        CheckAddMove(row - 2, col + 1, null);
-        CheckAddMove(row - 2, col - 1, null);
-        CheckAddMove(row + 1, col + 2, null);
-        CheckAddMove(row + 1, col - 2, null);
-        CheckAddMove(row - 1, col + 2, null);
-        CheckAddMove(row - 1, col - 2, null);
+        checkAddMove(row + 2, col + 1, null);
+        checkAddMove(row + 2, col - 1, null);
+        checkAddMove(row - 2, col + 1, null);
+        checkAddMove(row - 2, col - 1, null);
+        checkAddMove(row + 1, col + 2, null);
+        checkAddMove(row + 1, col - 2, null);
+        checkAddMove(row - 1, col + 2, null);
+        checkAddMove(row - 1, col - 2, null);
     }
 
     private void pawnMoveCalculator() {
@@ -208,7 +208,7 @@ public class PieceMovesCalculator {
             promotionPieces = new ChessPiece.PieceType[]{null};
         }
         for (ChessPiece.PieceType type : promotionPieces) {
-            CheckAddMove(row, col, type);
+            checkAddMove(row, col, type);
         }
     }
 }
