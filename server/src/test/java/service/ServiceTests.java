@@ -1,11 +1,12 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.*;
-import model.CreateGameRequest;
-import model.UserData;
+import model.*;
 
 import org.junit.jupiter.api.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,7 +19,7 @@ public class ServiceTests {
     String registeredAuth;
 
     @BeforeEach
-    void SetUp() {
+    void SetUp() throws ResponseException  {
         clearService.clear();
         registeredAuth = userService.register(registeredUser).authToken();
     }
@@ -43,12 +44,45 @@ public class ServiceTests {
 
     @Test
     void LoginUser() throws ResponseException {
-        // register bob
-        // logout bob
-        // do something that requires an auth token
-        // login bob
-        // do something that requires an auth token
-        assertEquals("Bob",registeredUser.username());
+        userService.logout(registeredAuth);
+        assertEquals(1, userService.listUsers().size());
+    }
+
+    @Test
+    void LoginUserUnauthorized() throws ResponseException {
+        UserData userAlice = new UserData("Alice", "alice", "alice@alice.com");
+        ResponseException ex = assertThrows(ResponseException.class, () -> userService.login(userAlice));
+        assertEquals(ResponseException.Code.Unauthorized, ex.code());
+    }
+
+    @Test
+    void LogoutUser() throws ResponseException  {
+        userService.logout(registeredAuth);
+        CreateGameRequest gameRequest = new CreateGameRequest(registeredAuth, "game1");
+        ResponseException ex = assertThrows(ResponseException.class, () -> gameService.createGame(gameRequest));
+        assertEquals(ResponseException.Code.Unauthorized, ex.code());
+    }
+
+    @Test
+    void LogoutTwice() throws ResponseException {
+        userService.logout(registeredAuth);
+        ResponseException ex = assertThrows(ResponseException.class, () -> userService.logout(registeredAuth));
+        assertEquals(ResponseException.Code.Unauthorized, ex.code());
+    }
+
+    @Test
+    void ListGames() throws ResponseException {
+        assertEquals(0,gameService.listGames(registeredAuth).games().size());
+        CreateGameRequest gameRequest = new CreateGameRequest(registeredAuth, "game1");
+        gameService.createGame(gameRequest);
+        assertEquals(1,gameService.listGames(registeredAuth).games().size());
+    }
+
+    @Test
+    void ListGamesNoAuth() throws ResponseException {
+        userService.logout(registeredAuth);
+        ResponseException ex = assertThrows(ResponseException.class, () -> gameService.listGames(registeredAuth));
+        assertEquals(ResponseException.Code.Unauthorized, ex.code());
     }
 
     @Test
@@ -71,10 +105,53 @@ public class ServiceTests {
     }
 
     @Test
-    void CreateGameNoName() throws ResponseException{
+    void CreateGameNoName() throws ResponseException {
         CreateGameRequest gameRequest = new CreateGameRequest(registeredAuth, "");
         ResponseException ex = assertThrows(ResponseException.class, () -> gameService.createGame(gameRequest));
         assertEquals(ResponseException.Code.BadRequest, ex.code());
+    }
+
+    @Test
+    void JoinTwoPlayers() throws ResponseException {
+        // Join Bob as white
+        gameService.createGame(new CreateGameRequest(registeredAuth, "game1"));
+        assertEquals(1, gameService.listGamesObjects().size());
+
+        JoinGameData dataRequest = new JoinGameData(ChessGame.TeamColor.WHITE, 1);
+        JoinGameRequest joinRequest = new JoinGameRequest(registeredAuth, dataRequest);
+        gameService.joinGame(joinRequest);
+
+        // Join Alice as black
+        UserData userAlice = new UserData("Alice", "alice", "alice@alice.com");
+        String aliceAuth = userService.register(userAlice).authToken();
+
+        JoinGameData newDataRequest = new JoinGameData(ChessGame.TeamColor.BLACK, 1);
+        JoinGameRequest newJoinRequest = new JoinGameRequest(aliceAuth, newDataRequest);
+        gameService.joinGame(newJoinRequest);
+
+        GameData finalGame = new GameData(1, "Bob", "Alice", "game1", new ChessGame());
+        assertEquals(finalGame, gameService.listGames(registeredAuth).games().getFirst());
+    }
+
+    @Test
+    void JoinSameColor() {
+        // Join Bob as white
+        gameService.createGame(new CreateGameRequest(registeredAuth, "game1"));
+        assertEquals(1, gameService.listGamesObjects().size());
+
+        JoinGameData dataRequest = new JoinGameData(ChessGame.TeamColor.WHITE, 1);
+        JoinGameRequest joinRequest = new JoinGameRequest(registeredAuth, dataRequest);
+        gameService.joinGame(joinRequest);
+
+        // Join Alice as white as well
+        UserData userAlice = new UserData("Alice", "alice", "alice@alice.com");
+        String aliceAuth = userService.register(userAlice).authToken();
+
+        JoinGameData newDataRequest = new JoinGameData(ChessGame.TeamColor.WHITE, 1);
+        JoinGameRequest newJoinRequest = new JoinGameRequest(aliceAuth, newDataRequest);
+
+        ResponseException ex = assertThrows(ResponseException.class, () -> gameService.joinGame(newJoinRequest));
+        assertEquals(ResponseException.Code.AlreadyTaken, ex.code());
     }
 
     @Test

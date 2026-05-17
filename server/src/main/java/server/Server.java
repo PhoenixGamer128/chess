@@ -78,7 +78,7 @@ public class Server {
     }
 
     private void createGame(Context ctx) {
-        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        String authToken = ctx.header("authorization");
         GameData requestedName = new Gson().fromJson(ctx.body(), GameData.class);
         CreateGameRequest gameRequest = new CreateGameRequest(authToken, requestedName.gameName());
 
@@ -86,7 +86,7 @@ public class Server {
     }
 
     private void joinGame(Context ctx) {
-        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        String authToken = (ctx.header("authorization"));
         JoinGameData joinGameData = new Gson().fromJson(ctx.body(), JoinGameData.class);
         JoinGameRequest gameRequest = new JoinGameRequest(authToken, joinGameData);
 

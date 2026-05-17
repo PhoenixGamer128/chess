@@ -55,21 +55,21 @@ public class GameService {
         validateAndJoinGame(gameData, username);
     }
 
-    private void validateJoinSyntax(JoinGameData gameData) {
+    private void validateJoinSyntax(JoinGameData gameData) throws ResponseException {
         // Check user input
         if (gameData == null
                 || gameData.playerColor() == null
                 || gameData.gameID() == null) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Bad request");
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Bad request");
 
         }
     }
 
-    private void validateAndJoinGame(JoinGameData gameToJoin, String username) {
+    private void validateAndJoinGame(JoinGameData gameToJoin, String username) throws ResponseException {
         // Check if game (still) exists
         GameData requestedGame = gameDAO.getGame(gameToJoin.gameID());
         if (requestedGame == null) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Bad request");
+            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Bad request");
         }
 
         ChessGame.TeamColor requestedColor = gameToJoin.playerColor();
@@ -83,7 +83,7 @@ public class GameService {
                     requestedGame.game()
             ));
         }
-        if (requestedColor == ChessGame.TeamColor.BLACK && requestedGame.blackUsername() == null) {
+        else if (requestedColor == ChessGame.TeamColor.BLACK && requestedGame.blackUsername() == null) {
             gameDAO.updateGame(requestedGame, new GameData(
                     requestedGame.gameID(),
                     requestedGame.whiteUsername(),
@@ -91,6 +91,8 @@ public class GameService {
                     requestedGame.gameName(),
                     requestedGame.game()
             ));
+        } else {
+            throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: Color already taken");
         }
     }
 
