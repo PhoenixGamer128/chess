@@ -25,3 +25,19 @@ on a big project like this is to design what I want
 my project to do and ask myself: is this really the
 best way to do what I want it to do, or is there a
 better way or is it unnecessary?
+
+# Phase 3
+
+Wow, this was a very long phase. I didn't know what
+to do at first, so I just started at the very end of
+registration (low level, working with primitives).
+I think one of the most important things I learned
+was to look at the specs and figure out what exactly
+I should be returning. I spent a long time returning
+a GameID object/record when it should have been a
+simple integer. I also didn't realize that my game
+list was supposed to be an actual list instead of --
+what I thought was a good idea at the time -- a 
+hashmap. I thought that it would make everything
+run faster, but there really is no need if I need
+to iterate through my games checking for gameIDs.
