@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import java.util.Map;
 
-public class ResponseException extends RuntimeException {
+public class ResponseException extends DataAccessException {
 
     public enum Code {
         AlreadyTaken,
