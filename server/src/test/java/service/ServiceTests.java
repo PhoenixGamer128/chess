@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class ServiceTests {
     static UserService userService = new UserService(new SQLUserDAO(), new SQLAuthDAO());
-    static GameService gameService = new GameService(new MemoryGameDAO(), userService);
+    static GameService gameService = new GameService(new SQLGameDAO(), userService);
     static ClearService clearService = new ClearService(userService, gameService);
     UserData registeredUser = new UserData("Bob", "bob", "bob@bob.com");
     String registeredAuth;

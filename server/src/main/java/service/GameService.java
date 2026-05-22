@@ -27,20 +27,10 @@ public class GameService {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: Game name cannot be empty.");
         }
 
-        // Find valid gameID
-        ArrayList<GameData> gameList = listGamesObjects();
-        int gameID = 1;
-        for (GameData game : gameList) {
-            if (game.gameID() != gameID) {
-                break;
-            }
-            gameID++;
-        }
-
         // Create new game
         ChessGame chessGame = new ChessGame();
-        GameData newGame = new GameData(gameID, null, null, requestedGame.gameName(),chessGame);
-        gameDAO.createGame(gameID, newGame);
+        GameData newGame = new GameData(null, null, null, requestedGame.gameName(),chessGame);
+        int gameID = gameDAO.createGame(newGame);
 
         return new GameID(gameID);
     }

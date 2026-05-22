@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface GameDAO {
-    void createGame(int gameID, GameData game);
+    int createGame(GameData game);
 
     GameData getGame(int gameID);
 
