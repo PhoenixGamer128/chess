@@ -51,7 +51,7 @@ public class SQLAuthDAO implements AuthDAO {
                         return new AuthData(resultSet.getString("authToken"),
                                 resultSet.getString("username"));
                     } else {
-                        return null;
+                        return new AuthData(null, null);
                     }
                 }
             }
@@ -62,7 +62,16 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     public void deleteAuth(AuthData authData) throws ResponseException {
-
+        var statement = "DELETE FROM authTokens WHERE authToken = ?";
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, authData.authToken());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new ResponseException(ResponseException.Code.DataAccess,
+                    String.format("Unable to delete authToken: %s", ex.getMessage()));
+        }
     }
 
     public void clearAuths() throws ResponseException {
