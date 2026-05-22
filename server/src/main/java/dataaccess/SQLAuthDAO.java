@@ -11,17 +11,15 @@ import java.util.UUID;
 public class SQLAuthDAO implements AuthDAO, SQLDataAccess {
 
     public SQLAuthDAO() {
-        configureDatabase();
+        String createStatement = """
+                CREATE TABLE IF NOT EXISTS authTokens (
+                authToken varchar(64) NOT NULL,
+                username varchar(256) NOT NULL,
+                PRIMARY KEY (authToken)
+                )
+                """;
+        configureDatabase(createStatement);
     }
-
-    private final String createStatement =
-            """
-            CREATE TABLE IF NOT EXISTS authTokens (
-            authToken varchar(64) NOT NULL,
-            username varchar(256) NOT NULL,
-            PRIMARY KEY (authToken)
-            )
-            """;
 
     public AuthData createAuth(UserData requestedUser) throws ResponseException {
         String authToken = UUID.randomUUID().toString();
@@ -76,17 +74,5 @@ public class SQLAuthDAO implements AuthDAO, SQLDataAccess {
 
     public void clearAuths() throws ResponseException {
         clearTable("authTokens");
-    }
-
-    private void configureDatabase() throws DataAccessException {
-        DatabaseManager.createDatabase();
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(createStatement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
-                    String.format("Unable to configure database: %s", ex.getMessage()));
-        }
     }
 }

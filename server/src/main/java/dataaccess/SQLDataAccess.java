@@ -7,6 +7,17 @@ import java.util.Set;
 public interface SQLDataAccess {
     Set<String> allowedTableNames = Set.of("authTokens", "users", "games");
 
+    default void configureDatabase(String createStatement) throws DataAccessException {
+        DatabaseManager.createDatabase();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(createStatement)) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new ResponseException(ResponseException.Code.DataAccess,
+                    String.format("Unable to configure database: %s", ex.getMessage()));
+        }
+    }
 
     default void clearTable(String tableName) throws ResponseException {
         if (!allowedTableNames.contains(tableName)) {
