@@ -63,19 +63,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
                 ResultSet resultGame = preparedStatement.getResultSet();
 
                 if (resultGame.next()) {
-                    int thisGameID = resultGame.getInt("id");
-                    String thisWhiteUsername = resultGame.getString("whiteUsername");
-                    String thisBlackUsername = resultGame.getString("blackUsername");
-                    String thisGameName = resultGame.getString("gameName");
-                    String gameJson = resultGame.getString("game");
-                    ChessGame thisGame = new Gson().fromJson(gameJson, ChessGame.class);
-                    return new GameData(
-                            thisGameID,
-                            thisWhiteUsername,
-                            thisBlackUsername,
-                            thisGameName,
-                            thisGame
-                    );
+                    return parseGames(resultGame);
                 }
                 return null;
             }
@@ -85,8 +73,41 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
         }
     }
 
+    private GameData parseGames(ResultSet resultGameSet) throws SQLException {
+        int thisGameID = resultGameSet.getInt("id");
+        String thisWhiteUsername = resultGameSet.getString("whiteUsername");
+        String thisBlackUsername = resultGameSet.getString("blackUsername");
+        String thisGameName = resultGameSet.getString("gameName");
+        String gameJson = resultGameSet.getString("game");
+        ChessGame thisGame = new Gson().fromJson(gameJson, ChessGame.class);
+        return new GameData(
+                thisGameID,
+                thisWhiteUsername,
+                thisBlackUsername,
+                thisGameName,
+                thisGame
+        );
+    }
+
     public ArrayList<GameData> listGames() {
-        return null;
+        var statement = "SELECT * FROM games";
+        ArrayList<GameData> games = new ArrayList<>();
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.executeQuery();
+                ResultSet resultGamesList = preparedStatement.getResultSet();
+
+                while (resultGamesList.next()) {
+                    games.add(parseGames(resultGamesList));
+                }
+
+                return games;
+            }
+        }
+        catch (SQLException ex){
+            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+        }
     }
 
     public void updateGame(GameData oldGame, GameData gameData) {
@@ -94,6 +115,6 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
     }
 
     public void clearGames() {
-
+        clearTable("games");
     }
 }
