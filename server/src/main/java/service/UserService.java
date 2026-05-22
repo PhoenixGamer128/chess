@@ -34,10 +34,13 @@ public class UserService {
         validateCredentials(requestedUser);
 
         UserData foundUser = userDAO.getUser(requestedUser);
-        // verify username and password
-        if (foundUser == null
-                || !(foundUser.username().equals(requestedUser.username())
-                && foundUser.password().equals(requestedUser.password()))) {
+        // verify username
+        if (foundUser == null) {
+            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+        }
+        // verify password
+        if (!foundUser.username().equals(requestedUser.username())
+                && foundUser.password().equals(requestedUser.password())) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
         // give user an authToken
