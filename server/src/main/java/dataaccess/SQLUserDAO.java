@@ -1,8 +1,10 @@
 package dataaccess;
 
 import model.UserData;
+import org.eclipse.jetty.server.Authentication;
 import org.mindrot.jbcrypt.BCrypt;
 
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,12 +44,12 @@ public class SQLUserDAO implements UserDAO, SQLDataAccess{
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var prepareStatement = conn.prepareStatement(statement)) {
                 prepareStatement.setString(1, requestedUser.username());
-                ResultSet resultSet = prepareStatement.executeQuery();
+                ResultSet resultUser = prepareStatement.executeQuery();
 
-                if (resultSet.next()) {
-                    String resultUsername = resultSet.getString("username");
-                    String resultPassword = resultSet.getString("password");
-                    String resultEmail = resultSet.getString("email");
+                if (resultUser.next()) {
+                    String resultUsername = resultUser.getString("username");
+                    String resultPassword = resultUser.getString("password");
+                    String resultEmail = resultUser.getString("email");
 
                     return new UserData(resultUsername, resultPassword, resultEmail);
                 }
@@ -62,7 +64,23 @@ public class SQLUserDAO implements UserDAO, SQLDataAccess{
     }
 
     public HashMap<String, UserData> listUsers() throws ResponseException {
-        return null;
+        var statement = "Select * FROM users";
+        HashMap<String, UserData> users = new HashMap<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                ResultSet userSet = preparedStatement.executeQuery();
+                while (userSet.next()) {
+                    String thisUsername = userSet.getString("username");
+                    String thisPassword = userSet.getString("password");
+                    String thisEmail = userSet.getString("email");
+                    users.put(thisUsername, new UserData(thisUsername, thisPassword, thisEmail));
+                }
+            }
+            return users;
+        }
+        catch (SQLException ex) {
+            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+        }
     }
 
     public void clearUsers() throws ResponseException {
