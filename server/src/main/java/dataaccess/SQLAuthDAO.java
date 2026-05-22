@@ -8,7 +8,7 @@ import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.UUID;
 
-public class SQLAuthDAO implements AuthDAO {
+public class SQLAuthDAO implements AuthDAO, SQLDataAccess {
 
     public SQLAuthDAO() {
         configureDatabase();
@@ -75,15 +75,7 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     public void clearAuths() throws ResponseException {
-        var statement = "TRUNCATE TABLE authTokens";
-        try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement(statement)) {
-                preparedStatement.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
-                    String.format("Unable to add authToken: %s", ex.getMessage()));
-        }
+        clearTable("authTokens");
     }
 
     private void configureDatabase() throws DataAccessException {
