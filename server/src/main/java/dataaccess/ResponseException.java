@@ -11,7 +11,7 @@ public class ResponseException extends DataAccessException {
         DataAccess,
         BadRequest,
         Unauthorized,
-        NotFound
+        NotFound,
     }
 
     Code code;
