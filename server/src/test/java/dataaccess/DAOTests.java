@@ -38,14 +38,6 @@ public class DAOTests {
             new ChessGame()
     );
 
-    GameData updatedGameBlackUser = new GameData(
-            null,
-            "",
-            "userBlack",
-            "gameBlackJoin",
-            new ChessGame()
-    );
-
 
     @BeforeAll
     static void initialization() {
