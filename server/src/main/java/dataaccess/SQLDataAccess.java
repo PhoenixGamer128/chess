@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.Set;
 
 public interface SQLDataAccess {
-    Set<String> allowedTableNames = Set.of("authTokens", "users", "games");
+    Set<String> ALLOWED_TABLE_NAMES = Set.of("authTokens", "users", "games");
 
     default void configureDatabase(String createStatement) throws DataAccessException {
         DatabaseManager.createDatabase();
@@ -20,7 +20,7 @@ public interface SQLDataAccess {
     }
 
     default void clearTable(String tableName) throws ResponseException {
-        if (!allowedTableNames.contains(tableName)) {
+        if (!ALLOWED_TABLE_NAMES.contains(tableName)) {
             throw new ResponseException(ResponseException.Code.BadRequest,
                     String.format("Cannot access table %s", tableName));
         }
