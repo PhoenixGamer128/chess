@@ -41,3 +41,14 @@ what I thought was a good idea at the time -- a
 hashmap. I thought that it would make everything
 run faster, but there really is no need if I need
 to iterate through my games checking for gameIDs.
+
+# Phase 4
+
+I unfortunately lost several hours of work because
+I wasn't committing enough. I thought I was, but
+I now know that committing EVERY single time you
+accomplish something is a reason to commit. This
+was a pretty long phase for me, not because it was
+inherently difficult, but because I was trying to
+remember all the syntax of SQL and how to convert
+it for JDBC.
