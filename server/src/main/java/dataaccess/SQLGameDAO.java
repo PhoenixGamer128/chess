@@ -55,15 +55,16 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
 //    }
 
     public GameData getGame(int gameID) {
-        var statement = "SELECT FROM games WHERE id = ?";
+        var statement = "SELECT * FROM games WHERE id = ?";
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setInt(1, gameID);
                 preparedStatement.executeQuery();
 
                 ResultSet resultGame = preparedStatement.getResultSet();
 
                 if (resultGame.next()) {
-                    return parseGames(resultGame);
+                    return parseGame(resultGame);
                 }
                 return null;
             }
@@ -73,7 +74,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
         }
     }
 
-    private GameData parseGames(ResultSet resultGameSet) throws SQLException {
+    private GameData parseGame(ResultSet resultGameSet) throws SQLException {
         int thisGameID = resultGameSet.getInt("id");
         String thisWhiteUsername = resultGameSet.getString("whiteUsername");
         String thisBlackUsername = resultGameSet.getString("blackUsername");
@@ -99,7 +100,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
                 ResultSet resultGamesList = preparedStatement.getResultSet();
 
                 while (resultGamesList.next()) {
-                    games.add(parseGames(resultGamesList));
+                    games.add(parseGame(resultGamesList));
                 }
 
                 return games;
@@ -110,8 +111,29 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
         }
     }
 
-    public void updateGame(GameData oldGame, GameData gameData) {
+    public void updateGame(GameData oldGame, GameData newGame) {
+        var statement = """ 
+                UPDATE games SET
+                whiteUsername = ?,
+                blackUsername = ?,
+                game = ?
+                WHERE id = ?
+                """;
 
+        String newGameJson = new Gson().toJson(getGame(newGame.gameID()));
+
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement(statement)) {
+                preparedStatement.setString(1, newGame.whiteUsername());
+                preparedStatement.setString(2, newGame.blackUsername());
+                preparedStatement.setString(3, newGameJson);
+                preparedStatement.setInt(4, newGame.gameID());
+                preparedStatement.executeUpdate();
+            }
+        }
+        catch (SQLException ex){
+            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+        }
     }
 
     public void clearGames() {
