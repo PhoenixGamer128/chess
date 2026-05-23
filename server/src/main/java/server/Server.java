@@ -3,10 +3,7 @@ package server;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
-import dataaccess.MemoryAuthDAO;
-import dataaccess.MemoryGameDAO;
-import dataaccess.MemoryUserDAO;
-import dataaccess.ResponseException;
+import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 import model.*;
@@ -30,8 +27,8 @@ public class Server {
     public Server() {
         javalin = Javalin.create(config -> config.staticFiles.add("web"));
 
-        this.userService = new UserService(new MemoryUserDAO(), new MemoryAuthDAO());
-        this.gameService = new GameService(new MemoryGameDAO(), userService);
+        this.userService = new UserService(new SQLUserDAO(), new SQLAuthDAO());
+        this.gameService = new GameService(new SQLGameDAO(), userService);
         this.clearService = new ClearService(userService, gameService);
 
         javalin.post("/user", this::registerUser)
