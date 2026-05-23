@@ -4,6 +4,7 @@ import dataaccess.*;
 import model.AuthData;
 import model.SessionResponse;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 // import javax.xml.crypto.Data;
 import java.util.HashMap;
@@ -39,8 +40,7 @@ public class UserService {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
         // verify password
-        if (!foundUser.username().equals(requestedUser.username())
-                && foundUser.password().equals(requestedUser.password())) {
+        if (!BCrypt.checkpw(requestedUser.password(), foundUser.password())) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
         }
         // give user an authToken
