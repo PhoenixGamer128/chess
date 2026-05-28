@@ -2,7 +2,6 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.reflect.TypeToken;
 import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -11,11 +10,7 @@ import service.GameService;
 import service.UserService;
 import service.ClearService;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.HashMap;
 
 public class Server {
 

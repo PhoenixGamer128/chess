@@ -47,7 +47,7 @@ public class ResponseException extends DataAccessException {
         };
     }
 
-    public Code fromHttpStatusCode(int code) {
+    public static Code fromHttpStatusCode(int code) {
         return switch (code) {
             case 500 -> Code.DataAccess;
             case 400 -> Code.BadRequest;
