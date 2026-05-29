@@ -36,8 +36,8 @@ public class ServerFacade {
         handleResponse(response, null);
     }
 
-    public GameList joinGame(String authToken) {
-        var request = buildRequest("PUT", "/game", null, authToken);
+    public GameList joinGame(JoinGameRequest joinRequest) {
+        var request = buildRequest("PUT", "/game", joinRequest.joinGameData(), joinRequest.authToken());
         var response = sendRequest(request);
         return handleResponse(response, GameList.class);
     }

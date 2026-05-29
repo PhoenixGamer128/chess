@@ -138,4 +138,42 @@ public class ServerFacadeTests {
         CreateGameRequest gameRequest = new CreateGameRequest("badAuth", "noAuthGame");
         assertThrows(ResponseException.class, () -> serverFacade.createGame(gameRequest));
     }
+
+    private void joinGameAsColor(String authToken, ChessGame.TeamColor color, int gameID) {
+        JoinGameData joinData = new JoinGameData(color, gameID);
+        JoinGameRequest joinUser = new JoinGameRequest(authToken, joinData);
+
+        serverFacade.joinGame(joinUser);
+    }
+
+    @Test
+    void joinGame() {
+        String otherAuthToken = serverFacade.register(otherUser).authToken();
+        CreateGameRequest gameRequest = new CreateGameRequest(newAuthToken, "newGame");
+        GameID gameID = serverFacade.createGame(gameRequest);
+
+        joinGameAsColor(newAuthToken, ChessGame.TeamColor.WHITE, gameID.gameID());
+        joinGameAsColor(otherAuthToken, ChessGame.TeamColor.BLACK, gameID.gameID());
+
+        GameData expectedGame = new GameData(
+                gameID.gameID(),
+                "newUser",
+                "otherUser",
+                "newGame",
+                new ChessGame()
+        );
+        assertTrue(containsGame(serverFacade.listGames(newAuthToken), expectedGame));
+    }
+
+    @Test
+    void joinGameTwoWhites() {
+        String otherAuthToken = serverFacade.register(otherUser).authToken();
+        CreateGameRequest gameRequest = new CreateGameRequest(newAuthToken, "newGame");
+        GameID gameID = serverFacade.createGame(gameRequest);
+
+        joinGameAsColor(newAuthToken, ChessGame.TeamColor.WHITE, gameID.gameID());
+        assertThrows(ResponseException.class,
+                () -> joinGameAsColor(otherAuthToken, ChessGame.TeamColor.WHITE, gameID.gameID())
+        );
+    }
 }
