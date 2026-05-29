@@ -2,9 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.ResponseException;
-import model.AuthData;
-import model.RegisterRequest;
-import model.UserData;
+import model.*;
 
 import java.net.URI;
 import java.net.http.*;
@@ -21,48 +19,57 @@ public class ServerFacade {
     }
 
     public AuthData register(UserData userRequest) throws ResponseException {
-        var request = buildRequest("POST", "/user", userRequest);
+        var request = buildRequest("POST", "/user", userRequest, null);
         var response = sendRequest(request);
         return handleResponse(response, AuthData.class);
     }
 
     public AuthData login(UserData userRequest) throws ResponseException {
-        var request = buildRequest("POST", "/session", userRequest);
+        var request = buildRequest("POST", "/session", userRequest, null);
         var response = sendRequest(request);
         return handleResponse(response, AuthData.class);
     }
 
     public void logout(String authToken) throws ResponseException {
-        var request = buildRequestHeader("DELETE", "/session", authToken);
+        var request = buildRequest("DELETE", "/session", null, authToken);
         var response = sendRequest(request);
         handleResponse(response, null);
     }
 
-    public void joinGame() {
+    public GameList joinGame(String authToken) {
+        var request = buildRequest("PUT", "/game", null, authToken);
+        var response = sendRequest(request);
+        return handleResponse(response, GameList.class);
+    }
 
+    public GameID createGame(CreateGameRequest requestedGame) {
+        var request = buildRequest("POST", "/game", requestedGame, requestedGame.authToken());
+        var response = sendRequest(request);
+        return handleResponse(response, GameID.class);
+    }
+
+    public GameList listGames(String authToken) {
+        var request = buildRequest("GET", "/game", null, authToken);
+        var response = sendRequest(request);
+        return handleResponse(response, GameList.class);
     }
 
     public void clear() throws ResponseException {
-        var request = buildRequest("DELETE", "/db", "");
+        var request = buildRequest("DELETE", "/db", "", null);
         sendRequest(request);
     }
 
-    private HttpRequest buildRequest (String method, String path, Object body) {
+    private HttpRequest buildRequest (String method, String path, Object body, String header) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
+        if (header != null) {
+            request.header("authorization", header);
+        }
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
         }
         return request.build();
-    }
-
-    private HttpRequest buildRequestHeader(String method, String path, String header) {
-        return HttpRequest.newBuilder()
-                .uri(URI.create(serverUrl + path))
-                .header("authorization", header)
-                .method(method, BodyPublishers.noBody())
-                .build();
     }
 
     private BodyPublisher makeRequestBody(Object request) {

@@ -1,8 +1,8 @@
 package client;
 
+import chess.ChessGame;
 import dataaccess.ResponseException;
-import model.AuthData;
-import model.UserData;
+import model.*;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
@@ -20,6 +20,11 @@ public class ServerFacadeTests {
             "newUserPass",
             "new.user@mail.com"
     );
+    private final UserData otherUser = new UserData(
+            "otherUser",
+            "otherUserPass",
+            "otherUser@mail.com"
+    );
     private final UserData incompleteUser = new UserData(
             "incompleteUser",
             "pass",
@@ -30,6 +35,8 @@ public class ServerFacadeTests {
             "pass",
             null
     );
+    private String newAuthToken;
+
 
 
     @BeforeAll
@@ -50,13 +57,15 @@ public class ServerFacadeTests {
     @BeforeEach
     void clearDatabase() {
         serverFacade.clear();
+        newAuthToken = serverFacade.register(newUser).authToken();
+
     }
 
 
     @Test
     public void registerUser() {
-        AuthData authData = serverFacade.register(newUser);
-        assertEquals("newUser", authData.username());
+        AuthData authData = serverFacade.register(otherUser);
+        assertEquals("otherUser", authData.username());
         assertNotEquals("", authData.authToken());
     }
 
@@ -67,7 +76,6 @@ public class ServerFacadeTests {
 
     @Test
     public void loginUser() {
-        serverFacade.register(newUser);
         AuthData authData = serverFacade.login(newUser);
         assertEquals("newUser", authData.username());
     }
@@ -79,12 +87,55 @@ public class ServerFacadeTests {
 
     @Test
     public void logoutUser() {
-        String authToken = serverFacade.register(newUser).authToken();
-        assertDoesNotThrow(() -> serverFacade.logout(authToken));
+        assertDoesNotThrow(() -> serverFacade.logout(newAuthToken));
     }
 
     @Test
     public void logoutInvalidUser() {
         assertThrows(ResponseException.class, () -> serverFacade.logout("badAuthToken"));
+    }
+
+    private boolean containsGame(GameList gameList, GameData targetGame) {
+        return gameList.games().contains(targetGame);
+    }
+
+    @Test
+    public void createGame() {
+        CreateGameRequest gameRequest = new CreateGameRequest(newAuthToken, "newGame");
+        GameID gameID = serverFacade.createGame(gameRequest);
+        GameData targetGame = new GameData(
+                gameID.gameID(),
+                null,
+                null,
+                "newGame",
+                new ChessGame()
+        );
+        assertTrue(containsGame(serverFacade.listGames(newAuthToken), targetGame));
+    }
+
+    @Test
+    public void createGameInvalid() {
+        CreateGameRequest gameRequest = new CreateGameRequest(newAuthToken, null);
+        assertThrows(ResponseException.class, () -> serverFacade.createGame(gameRequest));
+    }
+
+    private void createMultipleGames(int numGames) {
+        for (int i = 0; i < numGames; i++) {
+            CreateGameRequest gameRequest = new CreateGameRequest(newAuthToken, "game" + i);
+            serverFacade.createGame(gameRequest);
+        }
+    }
+
+    @Test
+    void listGames() {
+        int numGames = 10;
+        createMultipleGames(numGames);
+        assertEquals(numGames, serverFacade.listGames(newAuthToken).games().size());
+    }
+
+    @Test
+    void listGamesNoAuth() {
+        CreateGameRequest gameRequest = new CreateGameRequest("badAuth", "noAuthGame");
+        assertThrows(ResponseException.class, () -> serverFacade.createGame(gameRequest));
     }
 }
