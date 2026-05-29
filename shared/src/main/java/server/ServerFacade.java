@@ -20,18 +20,25 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public AuthData register(UserData userRequest) {
+    public AuthData register(UserData userRequest) throws ResponseException {
         var request = buildRequest("POST", "/user", userRequest);
         var response = sendRequest(request);
         return handleResponse(response, AuthData.class);
     }
 
-    public void login() {
-
+    public AuthData login(UserData userRequest) throws ResponseException {
+        var request = buildRequest("POST", "/session", userRequest);
+        var response = sendRequest(request);
+        return handleResponse(response, AuthData.class);
     }
 
     public void joinGame() {
 
+    }
+
+    public void clear() throws ResponseException {
+        var request = buildRequest("DELETE", "/db", "");
+        sendRequest(request);
     }
 
     private HttpRequest buildRequest (String method, String path, Object body) {

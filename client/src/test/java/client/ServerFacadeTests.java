@@ -1,5 +1,6 @@
 package client;
 
+import dataaccess.ResponseException;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.*;
@@ -19,6 +20,17 @@ public class ServerFacadeTests {
             "newUserPass",
             "new.user@mail.com"
     );
+    private final UserData incompleteUser = new UserData(
+            "incompleteUser",
+            "pass",
+            null
+    );
+    private final UserData invalidUser = new UserData(
+            null,
+            "pass",
+            null
+    );
+
 
     @BeforeAll
     public static void init() {
@@ -35,11 +47,35 @@ public class ServerFacadeTests {
         server.stop();
     }
 
+    @BeforeEach
+    void clearDatabase() {
+        serverFacade.clear();
+    }
+
 
     @Test
-    public void registerUserNoError() {
+    public void registerUser() {
         AuthData authData = serverFacade.register(newUser);
         assertEquals("newUser", authData.username());
+        assertNotEquals("", authData.authToken());
     }
+
+    @Test
+    public void registerUserInvalid() {
+        assertThrows(ResponseException.class, () -> serverFacade.register(incompleteUser));
+    }
+
+    @Test
+    public void loginUser() {
+        serverFacade.register(newUser);
+        AuthData authData = serverFacade.login(newUser);
+        assertEquals("newUser", authData.username());
+    }
+
+    @Test
+    public void loginUserInvalid() {
+        assertThrows(ResponseException.class, () -> serverFacade.login(invalidUser));
+    }
+
 
 }
