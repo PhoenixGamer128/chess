@@ -32,6 +32,12 @@ public class ServerFacade {
         return handleResponse(response, AuthData.class);
     }
 
+    public void logout(String authToken) throws ResponseException {
+        var request = buildRequestHeader("DELETE", "/session", authToken);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
     public void joinGame() {
 
     }
@@ -49,6 +55,14 @@ public class ServerFacade {
             request.setHeader("Content-Type", "application/json");
         }
         return request.build();
+    }
+
+    private HttpRequest buildRequestHeader(String method, String path, String header) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create(serverUrl + path))
+                .header("authorization", header)
+                .method(method, BodyPublishers.noBody())
+                .build();
     }
 
     private BodyPublisher makeRequestBody(Object request) {
