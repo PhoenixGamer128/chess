@@ -77,7 +77,7 @@ public class ChessClient {
                         Logout - Logout and return to login screen
                         Create Game <Game name> - Create a new chess game
                         List Games - List all games
-                        Play Game <Game number> - Join a chess game as a player
+                        Play Game <Game number> <White/Black> - Join a chess game as a player
                         Observe Game <Game number> - Join a chess game as an observer
                         """;
             case State.INGAME ->
@@ -112,16 +112,16 @@ public class ChessClient {
         try {
             if (state.equals(State.SIGNEDOUT)) {
                 return switch (cmd) {
-                    case "help" -> printHelp();
+                    case "help", "" -> printHelp();
                     case "quit" -> "quit";
                     case "login" -> preLoginClient.login();
                     case "register" -> preLoginClient.register();
                     default -> cmdErrorMessage();
                 };
             }
-            if (state.equals(State.SIGNEDIN)) {
+            else if (state.equals(State.SIGNEDIN)) {
                 return switch (cmd) {
-                    case "help" -> printHelp();
+                    case "help", "" -> printHelp();
                     case "logout" -> preLoginClient.logout();
                     case "create" -> postLoginClient.createGame(params);
                     case "list" -> postLoginClient.listGames(params);

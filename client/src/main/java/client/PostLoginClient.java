@@ -1,8 +1,11 @@
 package client;
 
+import chess.ChessGame;
 import dataaccess.ResponseException;
 import model.CreateGameRequest;
 import model.GameData;
+import model.JoinGameData;
+import model.JoinGameRequest;
 import server.ServerFacade;
 
 import java.util.ArrayList;
@@ -29,7 +32,7 @@ public class PostLoginClient {
         }
     }
 
-    public String listGames(String[] params) {
+    public String listGames(String[] params) throws ResponseException {
         if (params.length > 0 && params[0].equals("games")) {
             StringBuilder builder = new StringBuilder();
             HashMap<Integer, Integer> gameIDList = new HashMap<>();
@@ -54,8 +57,36 @@ public class PostLoginClient {
         }
     }
 
-    public String playGame(String[] params) {
-        return "Not implemented";
+    public String playGame(String[] params) throws ResponseException {
+        if (mainClient.getGameIDList().isEmpty()) {
+            return "Choose a game from an ID using \"List Games\"!";
+        }
+        if (params.length == 3 && params[0].equals("game")) {
+            try {
+                int requestedID = Integer.parseInt(params[1]);
+                int gameID = mainClient.getGameIDList().get(requestedID);
+
+                String requestedColorString = params[2].toLowerCase();
+                if (!(requestedColorString.equals("white") || requestedColorString.equals("black"))) {
+                    return "Please input \"White\" or \"Black\" as a color to play as";
+                }
+
+                ChessGame.TeamColor requestedColor = requestedColorString.equals("white") ?
+                        ChessGame.TeamColor.WHITE :
+                        ChessGame.TeamColor.BLACK;
+
+                JoinGameData joinData = new JoinGameData(requestedColor, gameID);
+                JoinGameRequest joinRequest = new JoinGameRequest(mainClient.getAuthToken(), joinData);
+                server.joinGame(joinRequest);
+                mainClient.setState(ChessClient.State.INGAME);
+                return "CHESS GAME BOARD";
+            }
+            catch (NumberFormatException ex) {
+                return "Please input an integer";
+            }
+        } else {
+            return "Please input a game number and team color:\nPlay Game <Game number> <White/Black>";
+        }
     }
 
     public String observeGame(String[] params) {
