@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import dataaccess.ResponseException;
 import server.ServerFacade;
 import ui.ChessStyles;
@@ -16,12 +17,19 @@ public class ChessClient {
         SIGNEDIN,
         INGAME
     }
+    public enum UserType {
+        WHITE,
+        BLACK,
+        OBSERVER
+    }
     private final ServerFacade server;
     private final PreLoginClient preLoginClient;
     private final PostLoginClient postLoginClient;
     private State state = State.SIGNEDOUT;
     private String authToken;
     private HashMap<Integer, Integer> gameIDList = new HashMap<>();
+    private int currentGameID;
+    private UserType currentUserType;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -32,59 +40,6 @@ public class ChessClient {
     public void run() {
         printIntro();
         repl();
-    }
-
-    private void printIntro() {
-        System.out.print(SET_BG_COLOR_BLACK);
-        System.out.print(SET_TEXT_COLOR_BLUE);
-        System.out.println(WHITE_KING + "Welcome to chess CS 240! Type \"Help\" for available commands." + BLACK_KING);
-        System.out.print(SET_TEXT_COLOR_WHITE);
-        System.out.println(printHelp());
-    }
-
-    public void setAuthToken(String authToken) {
-        this.authToken = authToken;
-    }
-
-    public String getAuthToken() {
-        return authToken;
-    }
-
-    public void setState(State state) {
-        this.state = state;
-    }
-
-    public void setGameIDList(HashMap<Integer, Integer> gameIDList) {
-        this.gameIDList = gameIDList;
-    }
-
-    public HashMap<Integer, Integer> getGameIDList() {
-        return this.gameIDList;
-    }
-
-    private String printHelp() {
-        return switch (state) {
-            case State.SIGNEDOUT ->
-                        """
-                        Help - Show available commands
-                        Quit - Exit the program
-                        Login - Login as existing user
-                        Register - Create a new user
-                        """;
-            case State.SIGNEDIN ->
-                        """
-                        Help - Show available commands
-                        Logout - Logout and return to login screen
-                        Create Game <Game name> - Create a new chess game
-                        List Games - List all games
-                        Play Game <Game number> <White/Black> - Join a chess game as a player
-                        Observe Game <Game number> - Join a chess game as an observer
-                        """;
-            case State.INGAME ->
-                        """
-                        WIP: Chess game commands coming soon!
-                        """;
-        };
     }
 
     private void repl() {
@@ -98,6 +53,39 @@ public class ChessClient {
             ChessStyles.resetText();
             System.out.println(result);
         }
+    }
+
+    private void printIntro() {
+        System.out.print(SET_BG_COLOR_BLACK);
+        System.out.print(SET_TEXT_COLOR_BLUE);
+        System.out.println(WHITE_KING + "Welcome to chess CS 240! Type \"Help\" for available commands." + BLACK_KING);
+        System.out.print(SET_TEXT_COLOR_WHITE);
+        System.out.println(printHelp());
+    }
+
+    private String printHelp() {
+        return switch (state) {
+            case State.SIGNEDOUT ->
+                    """
+                    Help - Show available commands
+                    Quit - Exit the program
+                    Login - Login as existing user
+                    Register - Create a new user
+                    """;
+            case State.SIGNEDIN ->
+                    """
+                    Help - Show available commands
+                    Logout - Logout and return to login screen
+                    Create Game <Game name> - Create a new chess game
+                    List Games - List all games
+                    Play Game <Game number> <White/Black> - Join a chess game as a player
+                    Observe Game <Game number> - Join a chess game as an observer
+                    """;
+            case State.INGAME ->
+                    """
+                    WIP: Chess game commands coming soon!
+                    """;
+        };
     }
 
     private void printPrompt() {
@@ -139,6 +127,42 @@ public class ChessClient {
 
     public static String cmdErrorMessage() {
         return "Invalid command, type \"Help\" for available commands";
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setState(State state) {
+        this.state = state;
+    }
+
+    public void setGameIDList(HashMap<Integer, Integer> gameIDList) {
+        this.gameIDList = gameIDList;
+    }
+
+    public HashMap<Integer, Integer> getGameIDList() {
+        return this.gameIDList;
+    }
+
+    public int getCurrentGameID() {
+        return currentGameID;
+    }
+
+    public void setCurrentGameID(int gameID) {
+        currentGameID = gameID;
+    }
+
+    public void setCurrentUserType(UserType userType) {
+        currentUserType = userType;
+    }
+
+    public UserType getCurrentUserType() {
+        return currentUserType;
     }
 }
 // TODO: Make errors prettier (server error)

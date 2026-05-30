@@ -79,6 +79,7 @@ public class PostLoginClient {
                 JoinGameRequest joinRequest = new JoinGameRequest(mainClient.getAuthToken(), joinData);
                 server.joinGame(joinRequest);
                 mainClient.setState(ChessClient.State.INGAME);
+                mainClient.setCurrentGameID(gameID);
                 return "CHESS GAME BOARD";
             }
             catch (NumberFormatException ex) {
