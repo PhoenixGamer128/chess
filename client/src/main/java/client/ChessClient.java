@@ -4,6 +4,7 @@ import dataaccess.ResponseException;
 import model.AuthData;
 import model.UserData;
 import server.ServerFacade;
+import ui.ChessStyles;
 
 import java.lang.module.ResolutionException;
 import java.util.Arrays;
@@ -31,14 +32,15 @@ public class ChessClient {
     }
 
     private void printIntro() {
+        System.out.print(SET_BG_COLOR_BLACK);
         System.out.print(SET_TEXT_COLOR_BLUE);
         System.out.println(WHITE_KING + "Welcome to chess CS 240! Type \"Help\" for available commands." + BLACK_KING);
         System.out.print(SET_TEXT_COLOR_WHITE);
-        System.out.println(printHelp(State.SIGNEDOUT));
+        System.out.println(printHelp());
     }
 
-    private String printHelp(State currentState) {
-        return switch (currentState) {
+    private String printHelp() {
+        return switch (state) {
             case State.SIGNEDOUT ->
                         """
                         Help - Show available commands
@@ -71,12 +73,14 @@ public class ChessClient {
             printPrompt();
             String input = scanner.nextLine();
             result = eval(input);
+
+            ChessStyles.resetText();
             System.out.println(result);
         }
     }
 
     private void printPrompt() {
-        System.out.print(SET_TEXT_COLOR_DARK_GREY + ">>>");
+        System.out.print(SET_TEXT_COLOR_LIGHT_GREY + ">>> ");
     }
 
     private String eval(String input) {
@@ -91,26 +95,59 @@ public class ChessClient {
             default -> "Invalid command, type \"Help\" for available commands";
         };
     }
+        if (state.equals(State.SIGNEDOUT)) {
+            return switch (cmd) {
+                case "help" -> printHelp();
+                case "quit" -> "quit";
+                case "login" -> login();
+                case "register" -> register();
+                default -> "Invalid command, type \"Help\" for available commands";
+            };
+        }
+        return "";
+    }
 
     private String login() {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Username: ");
-        String username = scanner.nextLine();
-        System.out.println("Password: ");
-        String password = scanner.nextLine();
-
-        UserData requestedUser = new UserData(username, password, null);
         try {
-            AuthData authData = server.login(requestedUser);
-            authToken = authData.authToken();
-            return "Logged in as " + authData.username();
+            String result = requestSession(true);
+            state = State.SIGNEDIN;
+            return result;
         }
         catch (ResponseException ex) {
             if (ex.code().equals(ResponseException.Code.Unauthorized)) {
-                return "Username or password incorrect";
+                return "Incorrect username or password";
             }
             return "Error " + ex.code() + ": " + ex.getMessage();
         }
+    }
+
+    private String register() {
+        try {
+            String result = requestSession(false);
+            state = State.SIGNEDIN;
+            return result;
+        }
+        catch (ResponseException ex) {
+            return "Error " + ex.code() + ": " + ex.getMessage();
+        }
+    }
+
+    private String requestSession(boolean onlyLogin) throws ResponseException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.print("Username: ");
+        String username = scanner.nextLine();
+        System.out.print("Password: ");
+        String password = scanner.nextLine();
+        String email = null;
+        if (!onlyLogin) {
+            System.out.print("email: ");
+            email = scanner.nextLine();
+        }
+
+        UserData requestedUser = new UserData(username, password, email);
+        AuthData authData = onlyLogin ? server.login(requestedUser) : server.register(requestedUser);
+        authToken = authData.authToken();
+        return "Logged in as " + authData.username();
     }
 }
 // TODO: Make errors prettier (server error)
