@@ -15,17 +15,19 @@ import java.util.Scanner;
 import static ui.EscapeSequences.*;
 
 public class ChessClient {
-    private enum State {
+    public enum State {
         SIGNEDOUT,
         SIGNEDIN,
         INGAME
     }
     private final ServerFacade server;
+    private final UserChessClient userChessClient;
     private State state = State.SIGNEDOUT;
     private String authToken;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
+        userChessClient = new UserChessClient(this, server);
     }
 
     public void run() {
@@ -39,6 +41,18 @@ public class ChessClient {
         System.out.println(WHITE_KING + "Welcome to chess CS 240! Type \"Help\" for available commands." + BLACK_KING);
         System.out.print(SET_TEXT_COLOR_WHITE);
         System.out.println(printHelp());
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setState(State state) {
+        this.state = state;
     }
 
     private String printHelp() {
@@ -93,15 +107,15 @@ public class ChessClient {
                 return switch (cmd) {
                     case "help" -> printHelp();
                     case "quit" -> "quit";
-                    case "login" -> login();
-                    case "register" -> register();
+                    case "login" -> userChessClient.login();
+                    case "register" -> userChessClient.register();
                     default -> cmdErrorMessage();
                 };
             }
             if (state.equals(State.SIGNEDIN)) {
                 return switch (cmd) {
                     case "help" -> printHelp();
-                    case "logout" -> logout();
+                    case "logout" -> userChessClient.logout();
                     case "create" -> createGame(params);
                     case "list" -> listGames(params);
                     case "play" -> playGame(params);
@@ -114,12 +128,6 @@ public class ChessClient {
         catch (ResponseException ex) {
             return "Error " + ex.code() + ": " + ex.getMessage();
         }
-    }
-
-    private String logout() throws ResponseException {
-        server.logout(authToken);
-        state = State.SIGNEDOUT;
-        return "Logged out";
     }
 
     private String createGame(String[] params) throws ResponseException {
@@ -144,45 +152,7 @@ public class ChessClient {
         return "Not implemented";
     }
 
-    private String login() throws ResponseException {
-        try {
-            String result = requestSession(true);
-            state = State.SIGNEDIN;
-            return result;
-        }
-        catch (ResponseException ex) {
-            if (ex.code().equals(ResponseException.Code.Unauthorized)) {
-                return "Incorrect username or password";
-            }
-            throw ex;
-        }
-    }
-
-    private String register() throws ResponseException {
-        String result = requestSession(false);
-        state = State.SIGNEDIN;
-        return result;
-    }
-
-    private String requestSession(boolean onlyLogin) throws ResponseException {
-        Scanner scanner = new Scanner(System.in);
-        System.out.print("Username: ");
-        String username = scanner.nextLine();
-        System.out.print("Password: ");
-        String password = scanner.nextLine();
-        String email = null;
-        if (!onlyLogin) {
-            System.out.print("email: ");
-            email = scanner.nextLine();
-        }
-
-        UserData requestedUser = new UserData(username, password, email);
-        AuthData authData = onlyLogin ? server.login(requestedUser) : server.register(requestedUser);
-        authToken = authData.authToken();
-        return "Logged in as " + authData.username();
-    }
-
-    private String cmdErrorMessage() {
+    public static String cmdErrorMessage() {
         return "Invalid command, type \"Help\" for available commands";
     }
 }
