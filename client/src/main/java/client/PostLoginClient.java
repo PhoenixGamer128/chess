@@ -2,9 +2,11 @@ package client;
 
 import dataaccess.ResponseException;
 import model.CreateGameRequest;
+import model.GameData;
 import server.ServerFacade;
 
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import static client.ChessClient.cmdErrorMessage;
 
@@ -18,7 +20,7 @@ public class PostLoginClient {
     }
 
     public String createGame(String[] params) throws ResponseException {
-        if (Objects.equals(params[0], "game")) {
+        if (params.length > 1 && params[0].equals("game")) {
             CreateGameRequest gameRequest = new CreateGameRequest(mainClient.getAuthToken(), params[1]);
             server.createGame(gameRequest);
             return "Created game " + params[1];
@@ -28,7 +30,28 @@ public class PostLoginClient {
     }
 
     public String listGames(String[] params) {
-        return "Not implemented";
+        if (params.length > 0 && params[0].equals("games")) {
+            StringBuilder builder = new StringBuilder();
+            HashMap<Integer, Integer> gameIDList = new HashMap<>();
+
+
+            ArrayList<GameData> gameList = server.listGames(mainClient.getAuthToken()).games();
+            for (int i = 1; i <= gameList.size(); i++) {
+                GameData game = gameList.get(i-1);
+                builder.append("Game Number: ")
+                        .append(i)
+                        .append(" | Player white: ")
+                        .append(game.whiteUsername())
+                        .append(" | Player black: ")
+                        .append(game.blackUsername())
+                        .append("\n");
+                gameIDList.put(i, game.gameID());
+            }
+            mainClient.setGameIDList(gameIDList);
+            return builder.toString();
+        } else {
+            return cmdErrorMessage();
+        }
     }
 
     public String playGame(String[] params) {

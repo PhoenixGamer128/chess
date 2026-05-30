@@ -1,12 +1,11 @@
 package client;
 
 import dataaccess.ResponseException;
-import model.CreateGameRequest;
 import server.ServerFacade;
 import ui.ChessStyles;
 
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.HashMap;
 import java.util.Scanner;
 
 import static ui.EscapeSequences.*;
@@ -22,6 +21,7 @@ public class ChessClient {
     private final PostLoginClient postLoginClient;
     private State state = State.SIGNEDOUT;
     private String authToken;
+    private HashMap<Integer, Integer> gameIDList = new HashMap<>();
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -52,6 +52,14 @@ public class ChessClient {
 
     public void setState(State state) {
         this.state = state;
+    }
+
+    public void setGameIDList(HashMap<Integer, Integer> gameIDList) {
+        this.gameIDList = gameIDList;
+    }
+
+    public HashMap<Integer, Integer> getGameIDList() {
+        return this.gameIDList;
     }
 
     private String printHelp() {
