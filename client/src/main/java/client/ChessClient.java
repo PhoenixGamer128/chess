@@ -1,13 +1,10 @@
 package client;
 
 import dataaccess.ResponseException;
-import model.AuthData;
 import model.CreateGameRequest;
-import model.UserData;
 import server.ServerFacade;
 import ui.ChessStyles;
 
-import java.lang.module.ResolutionException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -21,13 +18,15 @@ public class ChessClient {
         INGAME
     }
     private final ServerFacade server;
-    private final UserChessClient userChessClient;
+    private final PreLoginClient preLoginClient;
+    private final PostLoginClient postLoginClient;
     private State state = State.SIGNEDOUT;
     private String authToken;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
-        userChessClient = new UserChessClient(this, server);
+        preLoginClient = new PreLoginClient(this, server);
+        postLoginClient = new PostLoginClient(this, server);
     }
 
     public void run() {
@@ -107,19 +106,19 @@ public class ChessClient {
                 return switch (cmd) {
                     case "help" -> printHelp();
                     case "quit" -> "quit";
-                    case "login" -> userChessClient.login();
-                    case "register" -> userChessClient.register();
+                    case "login" -> preLoginClient.login();
+                    case "register" -> preLoginClient.register();
                     default -> cmdErrorMessage();
                 };
             }
             if (state.equals(State.SIGNEDIN)) {
                 return switch (cmd) {
                     case "help" -> printHelp();
-                    case "logout" -> userChessClient.logout();
-                    case "create" -> createGame(params);
-                    case "list" -> listGames(params);
-                    case "play" -> playGame(params);
-                    case "observe" -> observeGame(params);
+                    case "logout" -> preLoginClient.logout();
+                    case "create" -> postLoginClient.createGame(params);
+                    case "list" -> postLoginClient.listGames(params);
+                    case "play" -> postLoginClient.playGame(params);
+                    case "observe" -> postLoginClient.observeGame(params);
                     default -> cmdErrorMessage();
                 };
             }
@@ -128,28 +127,6 @@ public class ChessClient {
         catch (ResponseException ex) {
             return "Error " + ex.code() + ": " + ex.getMessage();
         }
-    }
-
-    private String createGame(String[] params) throws ResponseException {
-        if (Objects.equals(params[0], "game")) {
-            CreateGameRequest gameRequest = new CreateGameRequest(authToken, params[1]);
-            server.createGame(gameRequest);
-            return "Created game " + params[1];
-        } else {
-            return cmdErrorMessage();
-        }
-    }
-
-    private String listGames(String[] params) {
-        return "Not implemented";
-    }
-
-    private String playGame(String[] params) {
-        return "Not implemented";
-    }
-
-    private String observeGame(String[] params) {
-        return "Not implemented";
     }
 
     public static String cmdErrorMessage() {

@@ -7,11 +7,11 @@ import server.ServerFacade;
 
 import java.util.Scanner;
 
-public class UserChessClient {
+public class PreLoginClient {
     ServerFacade server;
     ChessClient mainClient;
 
-    public UserChessClient(ChessClient mainClient, ServerFacade server) {
+    public PreLoginClient(ChessClient mainClient, ServerFacade server) {
         this.server = server;
         this.mainClient = mainClient;
     }
