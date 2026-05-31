@@ -51,6 +51,10 @@ public class InGameClient {
     }
 
     private String printBoardGeneric(boolean isWhite, ChessBoard currentBoard) {
+        String rowCoords = "   a   b   c   d   e   f   g   h";
+        String rowCoordsReverse = "   h   g   f   e   d   c   b   a";
+        String rowCoordsColor = isWhite? rowCoords : rowCoordsReverse;
+        char[] colCoords = {'1', '2', '3', '4', '5', '6', '7', '8'};
         int beginRow = 8;
         int beginCol = 1;
         int direction = 1;
@@ -60,8 +64,24 @@ public class InGameClient {
             direction = -1;
         }
         StringBuilder builder = new StringBuilder();
+        builder.append("\n")
+                .append(EMPTY)
+                .append(SET_BG_COLOR_LIGHT_GREY)
+                .append(SET_TEXT_COLOR_BLACK)
+                .append(rowCoordsColor)
+                .append(EMPTY)
+                .append(SET_BG_COLOR_BLACK)
+                .append("\n");
         for (int row = beginRow; isInRange(row); row -= direction) {
+            builder.append(EMPTY);
             for (int col = beginCol; isInRange(col); col += direction) {
+                if (col == beginCol) {
+                    builder.append(SET_BG_COLOR_LIGHT_GREY)
+                            .append(SET_TEXT_COLOR_BLACK)
+                            .append(" ")
+                            .append(colCoords[row-1])
+                            .append(" ");
+                }
 
                 builder.append(printSquare((row + col) % 2 == 1));
                 ChessPosition position = new ChessPosition(row, col);
@@ -80,9 +100,25 @@ public class InGameClient {
                     builder.append(renderPiece(piece));
                 }
 
+                if (col == (beginCol + 7*direction)) {
+                    builder.append(SET_BG_COLOR_LIGHT_GREY)
+                            .append(SET_TEXT_COLOR_BLACK)
+                            .append(" ")
+                            .append(colCoords[row-1])
+                            .append(" ");
+                }
+            }
             builder.append(SET_BG_COLOR_BLACK);
             builder.append("\n");
         }
+        builder.append(SET_BG_COLOR_BLACK)
+                .append(EMPTY)
+                .append(SET_BG_COLOR_LIGHT_GREY)
+                .append(SET_TEXT_COLOR_BLACK)
+                .append(rowCoordsColor)
+                .append(EMPTY)
+                .append(SET_BG_COLOR_BLACK)
+                .append("\n");
         return builder.toString();
     }
 
