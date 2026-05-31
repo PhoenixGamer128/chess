@@ -1,6 +1,6 @@
 package service;
 
-import dataaccess.ResponseException;
+import model.ResponseException;
 
 public class ClearService {
     UserService userService;

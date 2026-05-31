@@ -1,6 +1,6 @@
 package client;
 
-import dataaccess.ResponseException;
+import model.ResponseException;
 import model.AuthData;
 import model.UserData;
 import server.ServerFacade;

@@ -1,7 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.ResponseException;
+import model.ResponseException;
 import model.*;
 
 import java.net.URI;

@@ -1,4 +1,4 @@
-package dataaccess;
+package model;
 
 public class DataAccessException extends RuntimeException {
     public DataAccessException(String message) {

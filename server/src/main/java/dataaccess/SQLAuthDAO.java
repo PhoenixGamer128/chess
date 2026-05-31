@@ -1,10 +1,9 @@
 package dataaccess;
 
-import com.google.gson.Gson;
 import model.AuthData;
+import model.ResponseException;
 import model.UserData;
 
-import javax.xml.crypto.Data;
 import java.sql.*;
 import java.util.UUID;
 

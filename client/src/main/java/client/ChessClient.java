@@ -1,7 +1,6 @@
 package client;
 
-import chess.ChessGame;
-import dataaccess.ResponseException;
+import model.ResponseException;
 import server.ServerFacade;
 import ui.ChessStyles;
 
