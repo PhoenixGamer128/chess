@@ -100,6 +100,31 @@ public class PostLoginClient {
     }
 
     public String observeGame(String[] params) {
-        return "Not implemented";
+        if (mainClient.getGameIDList().isEmpty()) {
+            return "Choose a game from an ID using \"List Games\"!";
+        }
+        if (params.length == 2 && params[0].equals("game")) {
+            try {
+                int requestedID = Integer.parseInt(params[1]);
+                int gameID = mainClient.getGameIDList().get(requestedID);
+
+                // Make request
+                JoinGameData joinData = new JoinGameData(null, gameID);
+                JoinGameRequest joinRequest = new JoinGameRequest(mainClient.getAuthToken(), joinData);
+                server.joinGame(joinRequest);
+
+                // Update user info to match request
+                ChessClient.UserType userType = ChessClient.UserType.OBSERVER;
+                mainClient.setState(ChessClient.State.INGAME);
+                mainClient.setCurrentGameID(gameID);
+                mainClient.setCurrentUserType(userType);
+                return mainClient.printBoard();
+            }
+            catch (NumberFormatException ex) {
+                return "Please input an integer";
+            }
+        } else {
+            return "Please input a game number and team color:\nPlay Game <Game number> <White/Black>";
+        }
     }
 }
