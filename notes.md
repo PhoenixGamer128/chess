@@ -52,3 +52,12 @@ was a pretty long phase for me, not because it was
 inherently difficult, but because I was trying to
 remember all the syntax of SQL and how to convert
 it for JDBC.
+
+# Phase 5
+
+Printing out the chess board was a lot harder
+than I thought. It was easy to print the white
+side, but then I had to think about my logic
+for turning the board around. I made my code
+even messier when it came to adding in the 
+coordinates.
