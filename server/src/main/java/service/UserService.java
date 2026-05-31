@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.*;
 import model.AuthData;
+import model.ResponseException;
 import model.SessionResponse;
 import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;

@@ -1,5 +1,8 @@
 package dataaccess;
 
+import model.DataAccessException;
+import model.ResponseException;
+
 import java.sql.*;
 import java.util.Properties;
 

@@ -2,13 +2,10 @@ package service;
 
 import chess.ChessGame;
 import dataaccess.GameDAO;
-import dataaccess.ResponseException;
+import model.ResponseException;
 import model.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 
 public class GameService {
 
