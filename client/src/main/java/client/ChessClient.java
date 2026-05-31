@@ -25,6 +25,7 @@ public class ChessClient {
     private final ServerFacade server;
     private final PreLoginClient preLoginClient;
     private final PostLoginClient postLoginClient;
+    private final InGameClient inGameClient;
     private State state = State.SIGNEDOUT;
     private String authToken;
     private HashMap<Integer, Integer> gameIDList = new HashMap<>();
@@ -35,6 +36,7 @@ public class ChessClient {
         server = new ServerFacade(serverUrl);
         preLoginClient = new PreLoginClient(this, server);
         postLoginClient = new PostLoginClient(this, server);
+        inGameClient = new InGameClient(this, server);
     }
 
     public void run() {
@@ -118,11 +120,25 @@ public class ChessClient {
                     default -> cmdErrorMessage();
                 };
             }
-            return "";
+            else {
+                return switch (cmd) {
+                  case "exit" -> exitGame();
+                  default -> cmdErrorMessage();
+                };
+            }
         }
         catch (ResponseException ex) {
             return "Error " + ex.code() + ": " + ex.getMessage();
         }
+    }
+
+    public String printBoard() {
+        return inGameClient.showBoard();
+    }
+
+    private String exitGame() {
+        state = State.SIGNEDIN;
+        return "Exited game";
     }
 
     public static String cmdErrorMessage() {

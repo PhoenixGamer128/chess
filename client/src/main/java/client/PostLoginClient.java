@@ -43,6 +43,8 @@ public class PostLoginClient {
                 GameData game = gameList.get(i-1);
                 builder.append("Game Number: ")
                         .append(i)
+                        .append(" | Name: ")
+                        .append(game.gameName())
                         .append(" | Player white: ")
                         .append(game.whiteUsername())
                         .append(" | Player black: ")
@@ -75,12 +77,19 @@ public class PostLoginClient {
                         ChessGame.TeamColor.WHITE :
                         ChessGame.TeamColor.BLACK;
 
+                // Make request
                 JoinGameData joinData = new JoinGameData(requestedColor, gameID);
                 JoinGameRequest joinRequest = new JoinGameRequest(mainClient.getAuthToken(), joinData);
                 server.joinGame(joinRequest);
+
+                // Update user info to match request
+                ChessClient.UserType userType = requestedColor.equals(ChessGame.TeamColor.WHITE) ?
+                        ChessClient.UserType.WHITE :
+                        ChessClient.UserType.BLACK;
                 mainClient.setState(ChessClient.State.INGAME);
                 mainClient.setCurrentGameID(gameID);
-                return "CHESS GAME BOARD";
+                mainClient.setCurrentUserType(userType);
+                return mainClient.printBoard();
             }
             catch (NumberFormatException ex) {
                 return "Please input an integer";
