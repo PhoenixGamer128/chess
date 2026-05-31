@@ -48,6 +48,7 @@ public class GameService {
     private void validateJoinSyntax(JoinGameData gameData) throws ResponseException {
         // Check user input
         if (gameData == null
+                || gameData.playerColor() == null
                 || gameData.gameID() == null) {
             throw new ResponseException(ResponseException.Code.BadRequest, "Error: Bad request");
 
@@ -63,16 +64,7 @@ public class GameService {
 
         ChessGame.TeamColor requestedColor = gameToJoin.playerColor();
 
-        if (requestedColor == null) {
-            gameDAO.updateGame(requestedGame, new GameData(
-                    requestedGame.gameID(),
-                    requestedGame.whiteUsername(),
-                    requestedGame.blackUsername(),
-                    requestedGame.gameName(),
-                    requestedGame.game()
-            ));
-        }
-        else if (requestedColor == ChessGame.TeamColor.WHITE && requestedGame.whiteUsername() == null) {
+        if (requestedColor == ChessGame.TeamColor.WHITE && requestedGame.whiteUsername() == null) {
             gameDAO.updateGame(requestedGame, new GameData(
                     requestedGame.gameID(),
                     username,

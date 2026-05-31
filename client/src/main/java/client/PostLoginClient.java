@@ -108,17 +108,13 @@ public class PostLoginClient {
                 int requestedID = Integer.parseInt(params[1]);
                 int gameID = mainClient.getGameIDList().get(requestedID);
 
-                // Make request
-                JoinGameData joinData = new JoinGameData(null, gameID);
-                JoinGameRequest joinRequest = new JoinGameRequest(mainClient.getAuthToken(), joinData);
-                server.joinGame(joinRequest);
-
                 // Update user info to match request
                 ChessClient.UserType userType = ChessClient.UserType.OBSERVER;
                 mainClient.setState(ChessClient.State.INGAME);
                 mainClient.setCurrentGameID(gameID);
                 mainClient.setCurrentUserType(userType);
-                return mainClient.printBoard();
+                return "Observing game " + requestedID;
+                //return mainClient.printBoard();
             }
             catch (NumberFormatException ex) {
                 return "Please input an integer";
