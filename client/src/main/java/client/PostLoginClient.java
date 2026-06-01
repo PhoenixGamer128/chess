@@ -120,7 +120,7 @@ public class PostLoginClient {
                 return "Please input an integer";
             }
         } else {
-            return "Please input a game number and team color:\nPlay Game <Game number> <White/Black>";
+            return "Please input a game number and team color:\nObserve Game <Game number>";
         }
     }
 }

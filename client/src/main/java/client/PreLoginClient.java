@@ -18,9 +18,7 @@ public class PreLoginClient {
 
     public String login() throws ResponseException {
         try {
-            String result = requestSession(true);
-            mainClient.setState(ChessClient.State.SIGNEDIN);
-            return result;
+            return requestSession(true);
         }
         catch (ResponseException ex) {
             if (ex.code().equals(ResponseException.Code.Unauthorized)) {
@@ -31,27 +29,33 @@ public class PreLoginClient {
     }
 
     public String register() throws ResponseException {
-        String result = requestSession(false);
-        mainClient.setState(ChessClient.State.SIGNEDIN);
-        return result;
+        return requestSession(false);
     }
 
     public String requestSession(boolean onlyLogin) throws ResponseException {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Username: ");
         String username = scanner.nextLine();
+        if (username.isEmpty()) {return printEmptyError("Username");}
         System.out.print("Password: ");
         String password = scanner.nextLine();
+        if (password.isEmpty()) {return printEmptyError("Password");}
         String email = null;
         if (!onlyLogin) {
             System.out.print("email: ");
             email = scanner.nextLine();
+            if (email.isEmpty()) {return printEmptyError("Email");}
         }
 
         UserData requestedUser = new UserData(username, password, email);
         AuthData authData = onlyLogin ? server.login(requestedUser) : server.register(requestedUser);
         mainClient.setAuthToken(authData.authToken());
+        mainClient.setState(ChessClient.State.SIGNEDIN);
         return "Logged in as " + authData.username();
+    }
+
+    private String printEmptyError(String parameter) {
+        return parameter + " cannot be empty";
     }
 
     public String logout() throws ResponseException {

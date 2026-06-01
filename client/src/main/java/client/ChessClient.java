@@ -127,7 +127,7 @@ public class ChessClient {
             }
         }
         catch (ResponseException ex) {
-            return "Error " + ex.code() + ": " + ex.getMessage();
+            return ex.getMessage();
         }
     }
 
@@ -142,6 +142,10 @@ public class ChessClient {
 
     public static String cmdErrorMessage() {
         return "Invalid command, type \"Help\" for available commands";
+    }
+
+    public static boolean validateArgs(String[] params, int paramLength) {
+        return params.length == paramLength;
     }
 
     public void setAuthToken(String authToken) {
