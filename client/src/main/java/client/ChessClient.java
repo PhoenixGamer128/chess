@@ -119,6 +119,7 @@ public class ChessClient {
                     default -> cmdErrorMessage();
                 };
             }
+
             else {
                 return switch (cmd) {
                   case "exit" -> exitGame();
@@ -142,10 +143,6 @@ public class ChessClient {
 
     public static String cmdErrorMessage() {
         return "Invalid command, type \"Help\" for available commands";
-    }
-
-    public static boolean validateArgs(String[] params, int paramLength) {
-        return params.length == paramLength;
     }
 
     public void setAuthToken(String authToken) {
