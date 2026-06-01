@@ -66,7 +66,11 @@ public class PostLoginClient {
         if (params.length == 3 && params[0].equals("game")) {
             try {
                 int requestedID = Integer.parseInt(params[1]);
-                int gameID = mainClient.getGameIDList().get(requestedID);
+                var gameID = mainClient.getGameIDList().get(requestedID);
+
+                if (gameID == null) {
+                    return "Game does not exist";
+                }
 
                 String requestedColorString = params[2].toLowerCase();
                 if (!(requestedColorString.equals("white") || requestedColorString.equals("black"))) {
@@ -106,7 +110,11 @@ public class PostLoginClient {
         if (params.length == 2 && params[0].equals("game")) {
             try {
                 int requestedID = Integer.parseInt(params[1]);
-                int gameID = mainClient.getGameIDList().get(requestedID);
+                var gameID = mainClient.getGameIDList().get(requestedID);
+
+                if (gameID == null) {
+                    return "Game does not exist";
+                }
 
                 // Update user info to match request
                 ChessClient.UserType userType = ChessClient.UserType.OBSERVER;
