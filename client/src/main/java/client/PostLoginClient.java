@@ -41,14 +41,17 @@ public class PostLoginClient {
             ArrayList<GameData> gameList = server.listGames(mainClient.getAuthToken()).games();
             for (int i = 1; i <= gameList.size(); i++) {
                 GameData game = gameList.get(i-1);
+                String whiteUsername = game.whiteUsername() == null ? "[  ]" : game.blackUsername();
+                String blackUsername = game.blackUsername() == null ? "[  ]" : game.blackUsername();
+
                 builder.append("Game Number: ")
                         .append(i)
                         .append(" | Name: ")
                         .append(game.gameName())
                         .append(" | Player white: ")
-                        .append(game.whiteUsername())
+                        .append(whiteUsername)
                         .append(" | Player black: ")
-                        .append(game.blackUsername())
+                        .append(blackUsername)
                         .append("\n");
                 gameIDList.put(i, game.gameID());
             }
@@ -121,8 +124,7 @@ public class PostLoginClient {
                 mainClient.setState(ChessClient.State.INGAME);
                 mainClient.setCurrentGameID(gameID);
                 mainClient.setCurrentUserType(userType);
-                return "Observing game " + requestedID;
-                //return mainClient.printBoard();
+                return mainClient.printBoard();
             }
             catch (NumberFormatException ex) {
                 return "Please input an integer";

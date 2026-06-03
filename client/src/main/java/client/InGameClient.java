@@ -27,9 +27,13 @@ public class InGameClient {
                     .get(mainClient.getCurrentGameID()-1)
                     .game()
                     .getBoard();
-            if (!mainClient.getCurrentUserType().equals(ChessClient.UserType.BLACK)) {
+            if (mainClient.getCurrentUserType().equals(ChessClient.UserType.WHITE)) {
                 return printBoardWhite(currentBoard);
-            } else {
+            }
+            else if (mainClient.getCurrentUserType().equals(ChessClient.UserType.OBSERVER)) {
+                return printBoardWhite(new ChessGame().getBoard());
+            }
+            else {
                 return printBoardBlack(currentBoard);
             }
         }
