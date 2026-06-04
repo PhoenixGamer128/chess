@@ -96,7 +96,7 @@ public class PostLoginClient {
                 mainClient.setState(ChessClient.State.INGAME);
                 mainClient.setCurrentGameID(gameID);
                 mainClient.setCurrentUserType(userType);
-                return mainClient.printBoard();
+                return mainClient.enterGame();
             }
             catch (NumberFormatException ex) {
                 return "Please input an integer";
@@ -124,7 +124,7 @@ public class PostLoginClient {
                 mainClient.setState(ChessClient.State.INGAME);
                 mainClient.setCurrentGameID(gameID);
                 mainClient.setCurrentUserType(userType);
-                return mainClient.printBoard();
+                return mainClient.enterGame();
             }
             catch (NumberFormatException ex) {
                 return "Please input an integer";

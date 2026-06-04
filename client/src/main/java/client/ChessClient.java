@@ -1,16 +1,23 @@
 package client;
 
+import client.websocket.NotificationHandler;
+import client.websocket.WebSocketFacade;
 import model.ResponseException;
 import server.ServerFacade;
 import ui.ChessStyles;
+import websocket.WebSocketRequest;
+import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
+import java.util.logging.*;
 
 import static ui.EscapeSequences.*;
 
-public class ChessClient {
+public class ChessClient implements NotificationHandler {
     public enum State {
         SIGNEDOUT,
         SIGNEDIN,
@@ -25,14 +32,19 @@ public class ChessClient {
     private final PreLoginClient preLoginClient;
     private final PostLoginClient postLoginClient;
     private final InGameClient inGameClient;
+    private final WebSocketFacade ws;
     private State state = State.SIGNEDOUT;
     private String authToken;
     private HashMap<Integer, Integer> gameIDList = new HashMap<>();
     private int currentGameID;
     private UserType currentUserType;
 
+    static Logger logger = Logger.getLogger("myLogger");
+
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
+        ws = new WebSocketFacade(serverUrl, this);
+
         preLoginClient = new PreLoginClient(this, server);
         postLoginClient = new PostLoginClient(this, server);
         inGameClient = new InGameClient(this, server);
@@ -41,6 +53,10 @@ public class ChessClient {
     public void run() {
         printIntro();
         repl();
+    }
+
+    public void notify(ServerMessage notification) {
+        System.out.println(notification.getServerMessageType());
     }
 
     private void repl() {
@@ -84,7 +100,9 @@ public class ChessClient {
                     """;
             case State.INGAME ->
                     """
-                    WIP: Chess game commands coming soon!
+                    exit: ---
+                    help: ---
+                    "": ---
                     """;
         };
     }
@@ -123,6 +141,7 @@ public class ChessClient {
             else {
                 return switch (cmd) {
                   case "exit" -> exitGame();
+                  case "help", "" -> printHelp();
                   default -> cmdErrorMessage();
                 };
             }
@@ -132,7 +151,13 @@ public class ChessClient {
         }
     }
 
-    public String printBoard() {
+    public String enterGame() {
+        WebSocketRequest request = new WebSocketRequest(UserGameCommand.CommandType.CONNECT, authToken, currentGameID);
+        return inGameClient.enterGame(request);
+    }
+
+    public String renderGame() {
+
         return inGameClient.showBoard();
     }
 
@@ -180,5 +205,7 @@ public class ChessClient {
     public UserType getCurrentUserType() {
         return currentUserType;
     }
+
+    public WebSocketFacade getWs() {return ws;}
 }
 // TODO: Make errors prettier (server error)

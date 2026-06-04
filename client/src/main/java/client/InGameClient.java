@@ -4,19 +4,30 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import client.websocket.WebSocketFacade;
 import model.ResponseException;
 import server.ServerFacade;
+import websocket.WebSocketRequest;
 
+import static client.ChessClient.logger;
 import static ui.ChessStyles.*;
 import static ui.EscapeSequences.*;
 
 public class InGameClient {
     ServerFacade server;
     ChessClient mainClient;
+    WebSocketFacade ws;
 
     public InGameClient(ChessClient mainClient, ServerFacade server) {
         this.server = server;
         this.mainClient = mainClient;
+        this.ws = mainClient.getWs();
+        logger.info(mainClient.getWs().toString());
+    }
+
+    public String enterGame(WebSocketRequest request) {
+        ws.connect(request);
+        return showBoard();
     }
 
     public String showBoard() {
@@ -38,7 +49,7 @@ public class InGameClient {
             }
         }
         catch (IndexOutOfBoundsException ex) {
-            ex.printStackTrace();
+            // ex.printStackTrace();
             return "Out of bounds";
         }
         catch (ResponseException ex) {

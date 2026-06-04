@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
+import io.javalin.websocket.WsConfig;
 import model.*;
 import service.GameService;
 import service.UserService;
@@ -26,6 +27,8 @@ public class Server {
         this.gameService = new GameService(new SQLGameDAO(), userService);
         this.clearService = new ClearService(userService, gameService);
 
+        WsRequestHandler wsHandler = new WsRequestHandler();
+
         javalin.post("/user", this::registerUser)
                 .post("/session", this::loginUser)
                 .delete("/session", this::logoutUser)
@@ -34,8 +37,12 @@ public class Server {
                 .get("/game", this::listGames)
                 .delete("/db", this::deleteDataBase)
                 .exception(ResponseException.class, this::exceptionHandler);
-        // Register your endpoints and exception handlers here.
 
+        javalin.ws("/ws", ws -> {
+            ws.onConnect(wsHandler);
+            ws.onMessage(wsHandler);
+            ws.onClose(wsHandler);
+        });
     }
 
     public int run(int desiredPort) {
@@ -91,6 +98,13 @@ public class Server {
         GameList gameList = gameService.listGames(authToken);
         String result = new Gson().toJson(gameList);
         ctx.result(result);
+    }
+
+    private void webSocketEndpoint(WsConfig ws) {
+        System.out.println("Made it here!");
+        ws.onConnect(ctx -> System.out.println("Websocket connected"));
+        ws.onMessage(ctx -> ctx.send("WebSocket response: " + ctx.message()));
+        ws.onClose(ctx -> System.out.println("WebSocket closed"));
     }
 
     private void deleteDataBase(Context ctx) {
