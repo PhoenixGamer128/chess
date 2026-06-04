@@ -17,7 +17,7 @@ public interface SQLDataAccess {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
+            throw new ResponseException(ResponseException.Code.ServerError,
                     String.format("Unable to configure database: %s", ex.getMessage()));
         }
     }
@@ -33,7 +33,7 @@ public interface SQLDataAccess {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
+            throw new ResponseException(ResponseException.Code.ServerError,
                     String.format("Unable to add authToken: %s", ex.getMessage()));
         }
     }

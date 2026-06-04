@@ -9,7 +9,7 @@ public class ResponseException extends DataAccessException {
 
     public enum Code {
         AlreadyTaken,
-        DataAccess,
+        ServerError,
         BadRequest,
         Unauthorized,
         NotFound,
@@ -40,7 +40,7 @@ public class ResponseException extends DataAccessException {
     public int toHttpStatusCode(ResponseException ex) {
         return switch (ex.code()) {
             case Code.AlreadyTaken -> 403;
-            case Code.DataAccess -> 500;
+            case Code.ServerError -> 500;
             case Code.BadRequest -> 400;
             case Code.Unauthorized -> 401;
             case Code.NotFound -> 404;
@@ -49,7 +49,7 @@ public class ResponseException extends DataAccessException {
 
     public static Code fromHttpStatusCode(int code) {
         return switch (code) {
-            case 500 -> Code.DataAccess;
+            case 500 -> Code.ServerError;
             case 400 -> Code.BadRequest;
             default -> throw new IllegalArgumentException("Unknown HTTP status code: " + code);
         };

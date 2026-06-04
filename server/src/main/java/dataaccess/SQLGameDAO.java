@@ -48,7 +48,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
             }
         }
         catch (SQLException ex){
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
@@ -71,7 +71,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
             }
         }
         catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
@@ -108,7 +108,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
             }
         }
         catch (SQLException ex){
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
@@ -133,7 +133,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
             }
         }
         catch (SQLException ex){
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 

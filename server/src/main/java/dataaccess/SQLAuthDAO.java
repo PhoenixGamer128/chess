@@ -32,7 +32,7 @@ public class SQLAuthDAO implements AuthDAO, SQLDataAccess {
                 return new AuthData(authToken, requestedUser.username());
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
+            throw new ResponseException(ResponseException.Code.ServerError,
                     String.format("Unable to add authToken: %s", ex.getMessage()));
 
         }
@@ -53,7 +53,7 @@ public class SQLAuthDAO implements AuthDAO, SQLDataAccess {
                 }
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
+            throw new ResponseException(ResponseException.Code.ServerError,
                     String.format("Unable to add authToken: %s", ex.getMessage()));
         }
     }
@@ -66,7 +66,7 @@ public class SQLAuthDAO implements AuthDAO, SQLDataAccess {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess,
+            throw new ResponseException(ResponseException.Code.ServerError,
                     String.format("Unable to delete authToken: %s", ex.getMessage()));
         }
     }

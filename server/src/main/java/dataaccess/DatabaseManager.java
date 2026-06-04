@@ -51,7 +51,7 @@ public class DatabaseManager {
             conn.setCatalog(databaseName);
             return conn;
         } catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess, "Error: failed to get connection");
+            throw new ResponseException(ResponseException.Code.ServerError, "Error: failed to get connection");
         }
     }
 

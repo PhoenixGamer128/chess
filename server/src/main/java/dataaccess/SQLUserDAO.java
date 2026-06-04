@@ -34,7 +34,7 @@ public class SQLUserDAO implements UserDAO, SQLDataAccess{
             }
         }
         catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
@@ -58,7 +58,7 @@ public class SQLUserDAO implements UserDAO, SQLDataAccess{
             }
         }
         catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
@@ -78,7 +78,7 @@ public class SQLUserDAO implements UserDAO, SQLDataAccess{
             return users;
         }
         catch (SQLException ex) {
-            throw new ResponseException(ResponseException.Code.DataAccess, ex.getMessage());
+            throw new ResponseException(ResponseException.Code.ServerError, ex.getMessage());
         }
     }
 
