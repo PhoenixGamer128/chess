@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
@@ -55,7 +56,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void enterGame(UserGameCommand command, Session session) {
         connections.addSession(command.getGameID(), session);
 
-        var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
 
         var notificationMessage =
                 String.format("%s %s", getUsername(command.getAuthToken()), enterMessage(getPlayerType(command)));
@@ -90,6 +91,16 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private GameData getGameData(String authToken, Integer gameID) {
         return gameService.listGames(authToken).games().get(gameID-1);
+    }
+
+    private ServerMessage createLoadMessage(String authToken, Integer gameID) {
+        var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
+        loadMessage.setCurrentBoardState(getCurrentGameState(authToken, gameID));
+        return loadMessage;
+    }
+
+    private ChessGame getCurrentGameState(String authToken, Integer gameID) {
+        return gameService.listGames(authToken).games().get(gameID-1).game();
     }
 
     private String getUsername(String authToken) {
