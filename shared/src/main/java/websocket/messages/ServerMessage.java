@@ -34,11 +34,11 @@ public class ServerMessage {
 
     public void setServerMessage(String message) {this.serverMessage = message;}
 
-    public void setCurrentBoardState(ChessGame currentBoardState) {
-        this.currentBoardState = currentBoardState;
+    public void setCurrentGameState(ChessGame currentGameState) {
+        this.currentBoardState = currentGameState;
     }
 
-    public ChessGame getCurrentBoardState() {
+    public ChessGame getCurrentGameState() {
         return currentBoardState;
     }
 

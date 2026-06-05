@@ -37,6 +37,7 @@ public class ChessClient implements NotificationHandler {
     private HashMap<Integer, Integer> gameIDList = new HashMap<>();
     private int currentGameID;
     private UserType currentUserType;
+    private ChessGame currentGameState;
 
     static Logger logger = Logger.getLogger("myLogger");
 
@@ -56,10 +57,14 @@ public class ChessClient implements NotificationHandler {
 
     public void notify(ServerMessage notification) {
         if (!notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
-            printBoard(notification.getCurrentBoardState());
+            if (notification.getCurrentGameState() != null) {
+                currentGameState = notification.getCurrentGameState();
+                System.out.print(printBoard(currentGameState) + "\n" + SET_TEXT_COLOR_LIGHT_GREY + ">>> ");
+            }
         }
         if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
-            System.out.println(notification.getServerMessage());
+            System.out.println(SET_TEXT_COLOR_BLUE + notification.getServerMessage());
+            printPrompt();
         }
     }
 
@@ -106,7 +111,7 @@ public class ChessClient implements NotificationHandler {
                     """
                     exit: ---
                     help: ---
-                    "": ---
+                    redraw chess board: ---
                     """;
         };
     }
@@ -146,6 +151,7 @@ public class ChessClient implements NotificationHandler {
                 return switch (cmd) {
                   case "exit" -> exitGame();
                   case "help", "" -> printHelp();
+                  case "redraw" -> printBoard(currentGameState);
                   default -> cmdErrorMessage();
                 };
             }
@@ -161,9 +167,9 @@ public class ChessClient implements NotificationHandler {
         return "";
     }
 
-    public void printBoard(ChessGame boardState) {
+    public String printBoard(ChessGame boardState) {
 
-        System.out.print(inGameClient.showBoard(boardState));
+        return inGameClient.showBoard(boardState);
     }
 
     private String exitGame() {

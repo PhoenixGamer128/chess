@@ -4,7 +4,6 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
-import model.AuthData;
 import model.GameData;
 import model.ResponseException;
 import org.jetbrains.annotations.NotNull;
@@ -95,7 +94,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private ServerMessage createLoadMessage(String authToken, Integer gameID) {
         var loadMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME);
-        loadMessage.setCurrentBoardState(getCurrentGameState(authToken, gameID));
+        loadMessage.setCurrentGameState(getCurrentGameState(authToken, gameID));
         return loadMessage;
     }
 
