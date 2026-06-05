@@ -39,7 +39,7 @@ public class GameService {
         JoinGameData gameData = gameRequest.joinGameData();
         validateJoinSyntax(gameData); // validate user input and gameID
 
-        validateAndJoinGame(gameData, username);
+        updateGame(username, gameData.gameID(), gameData.playerColor());
     }
 
     private void validateJoinSyntax(JoinGameData gameData) throws ResponseException {
@@ -52,35 +52,41 @@ public class GameService {
         }
     }
 
-    private void validateAndJoinGame(JoinGameData gameToJoin, String username) throws ResponseException {
-        // Check if game (still) exists
-        GameData requestedGame = gameDAO.getGame(gameToJoin.gameID());
-        if (requestedGame == null) {
-            throw new ResponseException(ResponseException.Code.BadRequest, "Error: Bad request");
+    private void updateGame(String username, Integer gameID, ChessGame.TeamColor targetColor) {
+        GameData game = gameDAO.getGame(gameID);
+        String targetWhite = game.whiteUsername();
+        String targetBlack = game.blackUsername();
+        if (targetColor != null) {
+            if (targetColor.equals(ChessGame.TeamColor.WHITE) && game.whiteUsername() == null) {
+                targetWhite = username;
+            } else if (targetColor.equals(ChessGame.TeamColor.BLACK) && game.blackUsername() == null) {
+                targetBlack = username;
+            }
         }
+        else {
+            if (game.whiteUsername().equals(username)) {
+                targetWhite = null;
+            } else if (game.blackUsername().equals(username)) {
+                targetBlack = null;
+            }
+        }
+        updateGameNames(game, targetWhite, targetBlack);
+    }
 
-        ChessGame.TeamColor requestedColor = gameToJoin.playerColor();
+    private void updateGameNames(GameData game, String targetWhite, String targetBlack) {
+        gameDAO.updateGame(game, new GameData(
+                game.gameID(),
+                targetWhite,
+                targetBlack,
+                game.gameName(),
+                game.game()
+        ));
+    }
 
-        if (requestedColor == ChessGame.TeamColor.WHITE && requestedGame.whiteUsername() == null) {
-            gameDAO.updateGame(requestedGame, new GameData(
-                    requestedGame.gameID(),
-                    username,
-                    requestedGame.blackUsername(),
-                    requestedGame.gameName(),
-                    requestedGame.game()
-            ));
-        }
-        else if (requestedColor == ChessGame.TeamColor.BLACK && requestedGame.blackUsername() == null) {
-            gameDAO.updateGame(requestedGame, new GameData(
-                    requestedGame.gameID(),
-                    requestedGame.whiteUsername(),
-                    username,
-                    requestedGame.gameName(),
-                    requestedGame.game()
-            ));
-        } else {
-            throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: Color already taken");
-        }
+    public void leaveGame(String authToken, Integer gameID) {
+        validateAuthToken(authToken);
+        String username = userService.getUser(authToken).username();
+        updateGame(username, gameID, null);
     }
 
     public GameList listGames(String authToken) {

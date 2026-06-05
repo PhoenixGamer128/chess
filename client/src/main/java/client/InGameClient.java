@@ -23,8 +23,14 @@ public class InGameClient {
         this.ws = mainClient.getWs();
     }
 
-    public void enterGame(UserGameCommand request) {
-        ws.connect(request);
+    public void enterGame(String authToken, Integer gameID) {
+        UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+        ws.sendRequest(request);
+    }
+
+    public void exitGame(String authToken, Integer gameID) {
+        UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+        ws.sendRequest(request);
     }
 
     public String showBoard(ChessGame boardState) {

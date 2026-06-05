@@ -149,10 +149,10 @@ public class ChessClient implements NotificationHandler {
 
             else {
                 return switch (cmd) {
-                  case "exit" -> exitGame();
+                  case "exit", "leave" -> exitGame();
                   case "help", "" -> printHelp();
                   case "redraw" -> printBoard(currentGameState);
-                  default -> cmdErrorMessage();
+                    default -> cmdErrorMessage();
                 };
             }
         }
@@ -162,8 +162,7 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String enterGame() {
-        UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, currentGameID);
-        inGameClient.enterGame(request);
+        inGameClient.enterGame(authToken, currentGameID);
         return "";
     }
 
@@ -173,6 +172,7 @@ public class ChessClient implements NotificationHandler {
     }
 
     private String exitGame() {
+        inGameClient.exitGame(authToken, currentGameID);
         state = State.SIGNEDIN;
         return "Exited game";
     }

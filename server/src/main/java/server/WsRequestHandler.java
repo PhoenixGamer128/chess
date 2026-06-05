@@ -2,6 +2,7 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import io.javalin.http.Context;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
 import model.GameData;
@@ -44,6 +45,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
         switch (command.getCommandType()) {
             case CONNECT -> enterGame(command, ctx.session);
+            case LEAVE -> leaveGame(command, ctx.session);
         }
     }
 
@@ -104,5 +106,16 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private String getUsername(String authToken) {
         return userService.getUser(authToken).username();
+    }
+
+    private void leaveGame(UserGameCommand command, Session session) {
+        connections.deleteSession(command.getGameID(), session);
+        gameService.leaveGame(command.getAuthToken(), command.getGameID());
+
+        String notificationMessage = String.format("%s has left", getUsername(command.getAuthToken()));
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notification.setServerMessage(notificationMessage);
+
+        connections.broadcast(session, command.getGameID(), notification);
     }
 }

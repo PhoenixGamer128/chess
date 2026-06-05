@@ -40,7 +40,7 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {}
 
-    public void connect(UserGameCommand request) {
+    public void sendRequest(UserGameCommand request) {
         try {
             var command = new UserGameCommand(request.getCommandType(), request.getAuthToken(), request.getGameID());
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
