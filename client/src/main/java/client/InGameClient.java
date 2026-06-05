@@ -7,9 +7,8 @@ import chess.ChessPosition;
 import client.websocket.WebSocketFacade;
 import model.ResponseException;
 import server.ServerFacade;
-import websocket.WebSocketRequest;
+import websocket.commands.UserGameCommand;
 
-import static client.ChessClient.logger;
 import static ui.ChessStyles.*;
 import static ui.EscapeSequences.*;
 
@@ -22,10 +21,9 @@ public class InGameClient {
         this.server = server;
         this.mainClient = mainClient;
         this.ws = mainClient.getWs();
-        logger.info(mainClient.getWs().toString());
     }
 
-    public String enterGame(WebSocketRequest request) {
+    public String enterGame(UserGameCommand request) {
         ws.connect(request);
         return showBoard();
     }

@@ -5,11 +5,9 @@ import client.websocket.WebSocketFacade;
 import model.ResponseException;
 import server.ServerFacade;
 import ui.ChessStyles;
-import websocket.WebSocketRequest;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Scanner;
@@ -57,6 +55,10 @@ public class ChessClient implements NotificationHandler {
 
     public void notify(ServerMessage notification) {
         System.out.println(notification.getServerMessageType());
+        if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
+            System.out.println(notification.getServerMessage());
+        }
+        System.out.println("WOWOWOWO");
     }
 
     private void repl() {
@@ -152,7 +154,7 @@ public class ChessClient implements NotificationHandler {
     }
 
     public String enterGame() {
-        WebSocketRequest request = new WebSocketRequest(UserGameCommand.CommandType.CONNECT, authToken, currentGameID);
+        UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, currentGameID);
         return inGameClient.enterGame(request);
     }
 
@@ -208,4 +210,3 @@ public class ChessClient implements NotificationHandler {
 
     public WebSocketFacade getWs() {return ws;}
 }
-// TODO: Make errors prettier (server error)

@@ -27,7 +27,7 @@ public class Server {
         this.gameService = new GameService(new SQLGameDAO(), userService);
         this.clearService = new ClearService(userService, gameService);
 
-        WsRequestHandler wsHandler = new WsRequestHandler();
+        WsRequestHandler wsHandler = new WsRequestHandler(userService, gameService);
 
         javalin.post("/user", this::registerUser)
                 .post("/session", this::loginUser)
@@ -101,7 +101,6 @@ public class Server {
     }
 
     private void webSocketEndpoint(WsConfig ws) {
-        System.out.println("Made it here!");
         ws.onConnect(ctx -> System.out.println("Websocket connected"));
         ws.onMessage(ctx -> ctx.send("WebSocket response: " + ctx.message()));
         ws.onClose(ctx -> System.out.println("WebSocket closed"));

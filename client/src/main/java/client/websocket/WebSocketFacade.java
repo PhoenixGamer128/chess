@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import websocket.WebSocketRequest;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
@@ -42,9 +41,9 @@ public class WebSocketFacade extends Endpoint {
     @Override
     public void onOpen(Session session, EndpointConfig endpointConfig) {}
 
-    public void connect(WebSocketRequest request) {
+    public void connect(UserGameCommand request) {
         try {
-            var command = new UserGameCommand(request.commandType(), request.authToken(), request.gameID());
+            var command = new UserGameCommand(request.getCommandType(), request.getAuthToken(), request.getGameID());
             this.session.getBasicRemote().sendText(new Gson().toJson(command));
         }
         catch (IOException ex) {
