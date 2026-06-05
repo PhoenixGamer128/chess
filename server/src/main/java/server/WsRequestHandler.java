@@ -77,10 +77,10 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
     private PlayerType getPlayerType(UserGameCommand command) {
         GameData gameInfo = getGameData(command.getAuthToken(), command.getGameID());
         String username = getUsername(command.getAuthToken());
-        if (gameInfo.whiteUsername().equals(username)) {
+        if (gameInfo.whiteUsername() != null && gameInfo.whiteUsername().equals(username)) {
             return PlayerType.WHITE;
         }
-        else if (gameInfo.blackUsername().equals(username)) {
+        else if (gameInfo.blackUsername() != null && gameInfo.blackUsername().equals(username)) {
             return PlayerType.BLACK;
         }
         else {
