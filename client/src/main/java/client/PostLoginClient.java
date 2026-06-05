@@ -41,7 +41,7 @@ public class PostLoginClient {
             ArrayList<GameData> gameList = server.listGames(mainClient.getAuthToken()).games();
             for (int i = 1; i <= gameList.size(); i++) {
                 GameData game = gameList.get(i-1);
-                String whiteUsername = game.whiteUsername() == null ? "[  ]" : game.blackUsername();
+                String whiteUsername = game.whiteUsername() == null ? "[  ]" : game.whiteUsername();
                 String blackUsername = game.blackUsername() == null ? "[  ]" : game.blackUsername();
 
                 builder.append("Game Number: ")

@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessGame;
 import client.websocket.NotificationHandler;
 import client.websocket.WebSocketFacade;
 import model.ResponseException;
@@ -54,11 +55,12 @@ public class ChessClient implements NotificationHandler {
     }
 
     public void notify(ServerMessage notification) {
-        System.out.println(notification.getServerMessageType());
+        if (!notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
+            printBoard(notification.getCurrentBoardState());
+        }
         if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
             System.out.println(notification.getServerMessage());
         }
-        System.out.println("WOWOWOWO");
     }
 
     private void repl() {
@@ -155,12 +157,13 @@ public class ChessClient implements NotificationHandler {
 
     public String enterGame() {
         UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, currentGameID);
-        return inGameClient.enterGame(request);
+        inGameClient.enterGame(request);
+        return "";
     }
 
-    public String renderGame() {
+    public void printBoard(ChessGame boardState) {
 
-        return inGameClient.showBoard();
+        System.out.print(inGameClient.showBoard(boardState));
     }
 
     private String exitGame() {

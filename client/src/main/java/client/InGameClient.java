@@ -23,19 +23,13 @@ public class InGameClient {
         this.ws = mainClient.getWs();
     }
 
-    public String enterGame(UserGameCommand request) {
+    public void enterGame(UserGameCommand request) {
         ws.connect(request);
-        return showBoard();
     }
 
-    public String showBoard() {
+    public String showBoard(ChessGame boardState) {
         try {
-            ChessBoard currentBoard = server.
-                    listGames(mainClient.getAuthToken())
-                    .games()
-                    .get(mainClient.getCurrentGameID()-1)
-                    .game()
-                    .getBoard();
+            ChessBoard currentBoard = boardState.getBoard();
             if (mainClient.getCurrentUserType().equals(ChessClient.UserType.WHITE)) {
                 return printBoardWhite(currentBoard);
             }
