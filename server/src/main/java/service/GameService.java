@@ -52,7 +52,9 @@ public class GameService {
         }
     }
 
-    private void updateGameData(String username, Integer gameID, ChessGame.TeamColor targetColor) {
+    private void updateGameData(String username,
+                                Integer gameID,
+                                ChessGame.TeamColor targetColor) throws ResponseException{
         GameData game = gameDAO.getGame(gameID);
         String targetWhite = game.whiteUsername();
         String targetBlack = game.blackUsername();
@@ -61,6 +63,8 @@ public class GameService {
                 targetWhite = username;
             } else if (targetColor.equals(ChessGame.TeamColor.BLACK) && game.blackUsername() == null) {
                 targetBlack = username;
+            } else {
+                throw new ResponseException(ResponseException.Code.AlreadyTaken, "Error: Color already taken");
             }
         }
         else {

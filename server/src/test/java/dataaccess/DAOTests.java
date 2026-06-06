@@ -210,7 +210,7 @@ public class DAOTests {
                 newGame.gameName(),
                 newGame.game()
         );
-        gameDAO.updateGame(newGame.gameID(), invalidGame);
+        gameDAO.updateGame(gameID, invalidGame);
         assertEquals(validGame, gameDAO.getGame(gameID));
     }
 
