@@ -59,3 +59,12 @@ than I thought. It was easy to print the white
 side, but then I had to think about my logic for
 turning the board around. I made my code even
 messier when it came to adding in the coordinates.
+
+# Phase 6
+This wasn't as hard as I thought it was going to be.
+My first hour of simply setting up a connection was
+really hard though. I thought I wasn't connecting
+through WebSocket, but it turns out I wasn't looking
+at the Server terminal. I also was slowed down quite
+a bit because I didn't realize what I was supposed
+to be notifying of game states and errors.
