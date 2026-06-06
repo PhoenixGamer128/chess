@@ -79,10 +79,6 @@ public class InGameClient {
     }
 
     private ChessMove parseMove(String[] startArray, String[] endArray) {
-//        int startCol = convertStringCoordToInt(startArray[0]);
-//        int startRow = Integer.parseInt(startArray[1]);
-//        int endCol = convertStringCoordToInt(endArray[0]);
-//        int endRow = Integer.parseInt(endArray[1]);
         ChessPosition startPosition = parsePosition(startArray);
         ChessPosition endPosition = parsePosition(endArray);
 
@@ -218,20 +214,7 @@ public class InGameClient {
                 }
 
                 ChessPosition position = new ChessPosition(row, col);
-                boolean hasHighlight = false;
-                if (highlightedMoves != null) {
-                    for (ChessMove highlightedMove : highlightedMoves) {
-                        if (position.equals(highlightedMove.getEndPosition())) {
-                            hasHighlight = true;
-                            break;
-                        }
-                    }
-                }
-                if (hasHighlight) {
-                    builder.append(printHighlight((row + col) % 2 == 1));
-                } else {
-                    builder.append(printSquare((row + col) % 2 == 1));
-                }
+                highlightSquare(builder, highlightedMoves, position);
                 ChessPiece piece = currentBoard.getPiece(position);
 
                 if (piece == null) {
@@ -267,6 +250,25 @@ public class InGameClient {
                 .append(SET_BG_COLOR_BLACK)
                 .append("\n");
         return builder.toString();
+    }
+
+    private void highlightSquare(StringBuilder builder,
+                                 Collection<ChessMove> highlightedMoves,
+                                 ChessPosition position) {
+        boolean hasHighlight = false;
+        if (highlightedMoves != null) {
+            for (ChessMove highlightedMove : highlightedMoves) {
+                if (position.equals(highlightedMove.getEndPosition())) {
+                    hasHighlight = true;
+                    break;
+                }
+            }
+        }
+        if (hasHighlight) {
+            builder.append(printHighlight((position.getRow() + position.getColumn()) % 2 == 1));
+        } else {
+            builder.append(printSquare((position.getRow() + position.getColumn()) % 2 == 1));
+        }
     }
 
     private boolean isInRange(int currentNum) {
