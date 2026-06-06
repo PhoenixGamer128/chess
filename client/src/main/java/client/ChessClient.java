@@ -6,7 +6,6 @@ import client.websocket.WebSocketFacade;
 import model.ResponseException;
 import server.ServerFacade;
 import ui.ChessStyles;
-import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import java.util.Arrays;
@@ -63,7 +62,7 @@ public class ChessClient implements NotificationHandler {
             }
         }
         if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
-            System.out.println(SET_TEXT_COLOR_BLUE + notification.getServerMessage());
+            System.out.println(SET_TEXT_COLOR_BLUE + notification.getMessage());
             printPrompt();
         }
     }
@@ -112,6 +111,7 @@ public class ChessClient implements NotificationHandler {
                     exit: ---
                     help: ---
                     redraw chess board: ---
+                    make move <position> <position>
                     """;
         };
     }
@@ -199,10 +199,6 @@ public class ChessClient implements NotificationHandler {
 
     public HashMap<Integer, Integer> getGameIDList() {
         return this.gameIDList;
-    }
-
-    public int getCurrentGameID() {
-        return currentGameID;
     }
 
     public void setCurrentGameID(int gameID) {

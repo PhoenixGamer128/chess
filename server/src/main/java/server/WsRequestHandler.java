@@ -2,7 +2,6 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import io.javalin.http.Context;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
 import model.GameData;
@@ -12,6 +11,8 @@ import service.GameService;
 import service.UserService;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
+
+import java.io.IOException;
 
 public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
@@ -38,23 +39,29 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleMessage(@NotNull WsMessageContext ctx) throws Exception {
-        UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
-        if (!userService.validAuthToken(command.getAuthToken())) {
-            throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
-        }
-        switch (command.getCommandType()) {
-            case CONNECT -> enterGame(command, ctx.session);
-            case LEAVE -> leaveGame(command, ctx.session);
+    public void handleMessage(@NotNull WsMessageContext ctx) {
+        try {
+            UserGameCommand command = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+            if (!userService.validAuthToken(command.getAuthToken())) {
+                throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");
+            }
+            switch (command.getCommandType()) {
+                case CONNECT -> enterGame(command, ctx.session);
+                case LEAVE -> leaveGame(command, ctx.session);
+            }
+        } catch (Exception ex) {
+            var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            serverErrorMessage.setErrorMessage(ex.getMessage());
+            connections.sendRoot(ctx.session, serverErrorMessage);
         }
     }
 
     @Override
     public void handleClose(@NotNull WsCloseContext ctx) throws Exception {
-
+        System.out.println("Websocket closed");
     }
 
-    private void enterGame(UserGameCommand command, Session session) {
+    private void enterGame(UserGameCommand command, Session session) throws IOException {
         connections.addSession(command.getGameID(), session);
 
         var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
@@ -62,9 +69,9 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         var notificationMessage =
                 String.format("%s %s", getUsername(command.getAuthToken()), enterMessage(getPlayerType(command)));
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setServerMessage(notificationMessage);
+        notification.setMessage(notificationMessage);
 
-        connections.sendRoot(session, command.getGameID(), loadMessage);
+        connections.sendRoot(session, loadMessage);
         connections.broadcast(session, command.getGameID(), notification);
     }
 
@@ -108,13 +115,13 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         return userService.getUser(authToken).username();
     }
 
-    private void leaveGame(UserGameCommand command, Session session) {
+    private void leaveGame(UserGameCommand command, Session session) throws IOException {
         connections.deleteSession(command.getGameID(), session);
         gameService.leaveGame(command.getAuthToken(), command.getGameID());
 
         String notificationMessage = String.format("%s has left", getUsername(command.getAuthToken()));
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-        notification.setServerMessage(notificationMessage);
+        notification.setMessage(notificationMessage);
 
         connections.broadcast(session, command.getGameID(), notification);
     }

@@ -13,8 +13,9 @@ import java.util.Objects;
 public class ServerMessage {
     ServerMessageType serverMessageType;
 
-    String serverMessage;
-    ChessGame currentBoardState;
+    String message;
+    ChessGame game;
+    String errorMessage;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -30,17 +31,21 @@ public class ServerMessage {
         return this.serverMessageType;
     }
 
-    public String getServerMessage() {return this.serverMessage;}
+    public String getMessage() {return this.message;}
 
-    public void setServerMessage(String message) {this.serverMessage = message;}
+    public void setMessage(String message) {this.message = message;}
 
     public void setCurrentGameState(ChessGame currentGameState) {
-        this.currentBoardState = currentGameState;
+        this.game = currentGameState;
     }
 
     public ChessGame getCurrentGameState() {
-        return currentBoardState;
+        return game;
     }
+
+    public void setErrorMessage(String errorMessage) {this.errorMessage = errorMessage;}
+
+    public String getErrorMessage() {return this.errorMessage;}
 
     @Override
     public boolean equals(Object o) {

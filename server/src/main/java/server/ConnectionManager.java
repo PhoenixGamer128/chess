@@ -32,7 +32,7 @@ public class ConnectionManager {
         }
     }
 
-    public void sendRoot(Session session, Integer gameID, ServerMessage message) {
+    public void sendRoot(Session session, ServerMessage message) {
         String msg = new Gson().toJson(message);
         try {
             session.getRemote().sendString(msg);
@@ -41,16 +41,12 @@ public class ConnectionManager {
         }
     }
 
-    public void broadcast(Session session, Integer gameID, ServerMessage message) {
+    public void broadcast(Session session, Integer gameID, ServerMessage message) throws IOException {
         String msg = new Gson().toJson(message);
-        try {
-            for (Session otherSession : sessions.get(gameID)) {
-                if (!otherSession.equals(session)) {
-                    otherSession.getRemote().sendString(msg);
-                }
+        for (Session otherSession : sessions.get(gameID)) {
+            if (otherSession.isOpen() && !otherSession.equals(session)) {
+                otherSession.getRemote().sendString(msg);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 }
