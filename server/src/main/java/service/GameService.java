@@ -68,9 +68,9 @@ public class GameService {
             }
         }
         else {
-            if (game.whiteUsername().equals(username)) {
+            if (game.whiteUsername() != null && game.whiteUsername().equals(username)) {
                 targetWhite = null;
-            } else if (game.blackUsername().equals(username)) {
+            } else if (game.blackUsername() != null && game.blackUsername().equals(username)) {
                 targetBlack = null;
             }
         }
