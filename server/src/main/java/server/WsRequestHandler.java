@@ -123,7 +123,9 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void leaveGame(UserGameCommand command, Session session) throws IOException {
         connections.deleteSession(command.getGameID(), session);
-        gameService.leaveGame(command.getAuthToken(), command.getGameID());
+        if (!getPlayerType(command).equals(PlayerType.OBSERVER)) {
+            gameService.leaveGame(command.getAuthToken(), command.getGameID());
+        }
 
         String notificationMessage = String.format("%s has left", getUsername(command.getAuthToken()));
         var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
@@ -158,9 +160,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             // bar user from making moves in checkmate
             if (game.isInCheckmate(playerColor) || game.isInCheckmate(enemyColor)) {
-                var errorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-                errorMessage.setErrorMessage("ERROR: Game has ended");
-                connections.sendRoot(session, errorMessage);
+                sendErrorMessage(session, "Error: Game has ended");
                 return;
             }
 
@@ -190,9 +190,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         }
         catch (InvalidMoveException ex) {
-            var moveError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
-            moveError.setErrorMessage("Error: Invalid move");
-            connections.sendRoot(session, moveError);
+            sendErrorMessage(session, "Error: Invalid move");
         }
     }
 
@@ -210,7 +208,16 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void resignGame(UserGameCommand command, Session session) throws IOException {
         ChessGame game = gameService.getGame(command.getAuthToken(), command.getGameID()).game();
-        game.setGameResigned(true);
+        if (!getPlayerType(command).equals(PlayerType.OBSERVER)) {
+            if (game.getGameResigned()) {
+                sendErrorMessage(session, "Error: game has already been resigned");
+                return;
+            }
+            game.setGameResigned(true);
+        } else {
+           sendErrorMessage(session, "Error: Cannot resign as an observer");
+            return;
+        }
         gameService.updateBoard(command.getGameID(), game);
 
         String notificationMessage = String.format("%s has resigned", getUsername(command.getAuthToken()));
@@ -219,4 +226,11 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
         connections.sendAll(session, command.getGameID(), notification);
     }
+
+    private void sendErrorMessage(Session session, String errorMessage) {
+        var moveError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+        moveError.setErrorMessage(errorMessage);
+        connections.sendRoot(session, moveError);
+    }
 }
+//TODO: Combine unnecessary duplicate code

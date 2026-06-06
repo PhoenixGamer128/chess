@@ -27,7 +27,7 @@ public class ConnectionManager {
     }
 
     public void deleteSession(Integer gameID, Session session) {
-        if (!sessions.containsKey(gameID)) {
+        if (sessions.containsKey(gameID)) {
             sessions.get(gameID).remove(session);
         }
     }
