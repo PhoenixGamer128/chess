@@ -188,7 +188,7 @@ public class DAOTests {
                 newGame.gameName(),
                 new ChessGame()
         );
-        gameDAO.updateGame(newGameWithID, newUpdatedGameWithID);
+        gameDAO.updateGame(newGameWithID.gameID(), newUpdatedGameWithID);
         assertTrue(assertGame(newUpdatedGameWithID, gameDAO.getGame(gameID)));
     }
 
@@ -210,7 +210,7 @@ public class DAOTests {
                 newGame.gameName(),
                 newGame.game()
         );
-        gameDAO.updateGame(newGame, invalidGame);
+        gameDAO.updateGame(newGame.gameID(), invalidGame);
         assertEquals(validGame, gameDAO.getGame(gameID));
     }
 

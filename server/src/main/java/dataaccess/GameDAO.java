@@ -14,7 +14,7 @@ public interface GameDAO {
 
     ArrayList<GameData> listGames();
 
-    void updateGame(GameData oldGame, GameData gameData);
+    void updateGame(Integer gameID, GameData gameData);
 
     void clearGames();
 }

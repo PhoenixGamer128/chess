@@ -5,6 +5,7 @@ import chess.ChessMove;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import io.javalin.websocket.*;
+import model.ChessPlayerInfo;
 import org.eclipse.jetty.websocket.api.Session;
 import model.GameData;
 import model.ResponseException;
@@ -151,27 +152,38 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             String enemyUsername = playerColor == ChessGame.TeamColor.WHITE ?
                     gameData.blackUsername() :
                     gameData.whiteUsername();
-//            if (!playerColor.equals(game.getTeamTurn())) {
-//                throw new InvalidMoveException("Error: Not your turn");
-//            }
+
+            ChessPlayerInfo playerInfo = new ChessPlayerInfo(playerUsername, enemyUsername, playerColor, enemyColor);
+
+            // bar user from making moves in checkmate
+            if (game.isInCheckmate(playerColor) || game.isInCheckmate(enemyColor)) {
+                var errorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+                errorMessage.setErrorMessage("ERROR: Game has ended");
+                connections.sendRoot(session, errorMessage);
+                return;
+            }
+
+            // make move
             if (game.validMoves(move.getStartPosition()).contains(move)) {
                 game.makeMove(move);
+                gameService.updateBoard(command.getGameID(), game);
                 var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
                 connections.sendAll(session, command.getGameID(), loadMessage);
 
                 var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                moveMessage.setMessage(String.format("%s made the move %s", playerUsername, convertMoveToString(move)));
+                moveMessage.setMessage(String.format(
+                        "%s made the move %s",
+                        playerInfo.playerUsername(),
+                        convertMoveToString(move)));
                 connections.broadcast(session, command.getGameID(), moveMessage);
-            }
-            if (game.isInCheck(enemyColor)) {
-                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                message.setMessage(String.format("%s is in check", enemyUsername));
-                connections.sendAll(session, command.getGameID(), message);
-            }
-            if (game.isInCheckmate(enemyColor)) {
-                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                message.setMessage(String.format("%s is in checkmate", enemyUsername));
-                connections.sendAll(session, command.getGameID(), message);
+
+                if (game.isInCheckmate(enemyColor)) {
+                    var checkmateMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                    checkmateMessage.setMessage(String.format("%s is in checkmate", enemyUsername));
+                    connections.sendAll(session, command.getGameID(), checkmateMessage);
+                }
+            } else {
+                throw new InvalidMoveException();
             }
         }
         catch (InvalidMoveException ex) {
@@ -179,6 +191,17 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             moveError.setErrorMessage("Error: Invalid move");
             connections.sendRoot(session, moveError);
         }
+    }
+
+    private String buildMoveMessage(ChessGame game, ChessPlayerInfo playerInfo, ChessMove move) {
+        StringBuilder builder = new StringBuilder();
+        if (game.isInCheck(playerInfo.enemyColor())) {
+            builder.append(String.format("%s is in check", playerInfo.enemyUsername()));
+        }
+        if (game.isInCheckmate(playerInfo.enemyColor())) {
+            builder.append(String.format("%s is in checkmate", playerInfo.enemyUsername()));
+        }
+        return builder.toString();
     }
 
     private String convertMoveToString(ChessMove move) {

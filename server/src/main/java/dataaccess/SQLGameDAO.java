@@ -112,7 +112,7 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
         }
     }
 
-    public void updateGame(GameData oldGame, GameData newGame) {
+    public void updateGame(Integer gameID, GameData newGame) {
         var statement = """ 
                 UPDATE games SET
                 whiteUsername = ?,
@@ -121,14 +121,14 @@ public class SQLGameDAO implements SQLDataAccess, GameDAO{
                 WHERE id = ?
                 """;
 
-        String newGameJson = new Gson().toJson(getGame(newGame.gameID()));
+        String newGameJson = new Gson().toJson(newGame.game());
 
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 preparedStatement.setString(1, newGame.whiteUsername());
                 preparedStatement.setString(2, newGame.blackUsername());
                 preparedStatement.setString(3, newGameJson);
-                preparedStatement.setInt(4, newGame.gameID());
+                preparedStatement.setInt(4, gameID);
                 preparedStatement.executeUpdate();
             }
         }

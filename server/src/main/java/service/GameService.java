@@ -39,7 +39,7 @@ public class GameService {
         JoinGameData gameData = gameRequest.joinGameData();
         validateJoinSyntax(gameData); // validate user input and gameID
 
-        updateGame(username, gameData.gameID(), gameData.playerColor());
+        updateGameData(username, gameData.gameID(), gameData.playerColor());
     }
 
     private void validateJoinSyntax(JoinGameData gameData) throws ResponseException {
@@ -52,7 +52,7 @@ public class GameService {
         }
     }
 
-    private void updateGame(String username, Integer gameID, ChessGame.TeamColor targetColor) {
+    private void updateGameData(String username, Integer gameID, ChessGame.TeamColor targetColor) {
         GameData game = gameDAO.getGame(gameID);
         String targetWhite = game.whiteUsername();
         String targetBlack = game.blackUsername();
@@ -74,7 +74,7 @@ public class GameService {
     }
 
     private void updateGameNames(GameData game, String targetWhite, String targetBlack) {
-        gameDAO.updateGame(game, new GameData(
+        gameDAO.updateGame(game.gameID(), new GameData(
                 game.gameID(),
                 targetWhite,
                 targetBlack,
@@ -83,10 +83,21 @@ public class GameService {
         ));
     }
 
+    public void updateBoard(Integer gameID, ChessGame game) {
+        GameData gameData = gameDAO.getGame(gameID);
+        GameData newGameData =
+                new GameData(gameData.gameID(),
+                        gameData.whiteUsername(),
+                        gameData.blackUsername(),
+                        gameData.gameName(),
+                        game);
+        gameDAO.updateGame(gameID, newGameData);
+    }
+
     public void leaveGame(String authToken, Integer gameID) {
         validateAuthToken(authToken);
         String username = userService.getUser(authToken).username();
-        updateGame(username, gameID, null);
+        updateGameData(username, gameID, null);
     }
 
     public GameList listGames(String authToken) {

@@ -30,6 +30,8 @@ public class MemoryGameDAO implements GameDAO {
         return gameList;
     }
 
+    public void updateGame(Integer gameID, GameData gameData) {}
+
     public void updateGame(GameData oldGame, GameData newGame) {
         gameList.remove(oldGame);
         gameList.add(newGame);
