@@ -187,6 +187,10 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             sendErrorMessage(session, "Error: Game has been resigned");
             return false;
         }
+        if (game.getBoard().getPiece(move.getStartPosition()) == null) {
+            sendErrorMessage(session, "Error: There is no piece there");
+            return false;
+        }
         if (!game.validMoves(move.getStartPosition()).contains(move)) {
             sendErrorMessage(session, "Error: Invalid Move");
             return false;
