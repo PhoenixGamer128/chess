@@ -2,7 +2,7 @@ package model;
 
 import chess.ChessGame;
 
-public record ChessPlayerInfo(
+public record ChessPlayersInfo(
         String playerUsername,
         String enemyUsername,
         ChessGame.TeamColor playerColor,

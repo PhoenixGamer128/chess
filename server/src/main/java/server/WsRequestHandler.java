@@ -5,7 +5,8 @@ import chess.ChessMove;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import io.javalin.websocket.*;
-import model.ChessPlayerInfo;
+import model.ChessPlayersInfo;
+import org.eclipse.jetty.server.Authentication;
 import org.eclipse.jetty.websocket.api.Session;
 import model.GameData;
 import model.ResponseException;
@@ -140,32 +141,16 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             ChessGame game = gameService.getGame(command.getAuthToken(), command.getGameID()).game();
             GameData gameData = getGameData(command.getAuthToken(), command.getGameID());
 
-            ChessGame.TeamColor playerColor =
-                    getPlayerType(command) == PlayerType.WHITE ?
-                            ChessGame.TeamColor.WHITE :
-                            ChessGame.TeamColor.BLACK;
-            ChessGame.TeamColor enemyColor =
-                    playerColor.equals(ChessGame.TeamColor.WHITE) ?
-                            ChessGame.TeamColor.BLACK :
-                            ChessGame.TeamColor.WHITE;
-
-            String playerUsername = playerColor == ChessGame.TeamColor.WHITE ?
-                    gameData.whiteUsername() :
-                    gameData.blackUsername();
-            String enemyUsername = playerColor == ChessGame.TeamColor.WHITE ?
-                    gameData.blackUsername() :
-                    gameData.whiteUsername();
-
-            ChessPlayerInfo playerInfo = new ChessPlayerInfo(playerUsername, enemyUsername, playerColor, enemyColor);
+            ChessPlayersInfo allPlayerInfo = createPlayersInfo(command, gameData);
 
             // bar user from making moves in checkmate
-            if (game.isInCheckmate(playerColor) || game.isInCheckmate(enemyColor)) {
+            if (game.isInCheckmate(allPlayerInfo.playerColor()) || game.isInCheckmate(allPlayerInfo.enemyColor())) {
                 sendErrorMessage(session, "Error: Game has ended");
                 return;
             }
 
             // make move
-            if (playerColor.equals(game.getTeamTurn())
+            if (allPlayerInfo.playerColor().equals(game.getTeamTurn())
                     && game.validMoves(move.getStartPosition()).contains(move)
                     && !game.getGameResigned()) {
                 game.makeMove(move);
@@ -176,13 +161,13 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
                 var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
                 moveMessage.setMessage(String.format(
                         "%s made the move %s",
-                        playerInfo.playerUsername(),
+                        allPlayerInfo.playerUsername(),
                         convertMoveToString(move)));
                 connections.broadcast(session, command.getGameID(), moveMessage);
 
-                if (game.isInCheckmate(enemyColor)) {
+                if (game.isInCheckmate(allPlayerInfo.enemyColor())) {
                     var checkmateMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                    checkmateMessage.setMessage(String.format("%s is in checkmate", enemyUsername));
+                    checkmateMessage.setMessage(String.format("%s is in checkmate", allPlayerInfo.enemyUsername()));
                     connections.sendAll(session, command.getGameID(), checkmateMessage);
                 }
             } else {
@@ -192,6 +177,25 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         catch (InvalidMoveException ex) {
             sendErrorMessage(session, "Error: Invalid move");
         }
+    }
+
+    private ChessPlayersInfo createPlayersInfo(UserGameCommand command, GameData gameData) {
+        ChessGame.TeamColor playerColor =
+                getPlayerType(command) == PlayerType.WHITE ?
+                        ChessGame.TeamColor.WHITE :
+                        ChessGame.TeamColor.BLACK;
+        ChessGame.TeamColor enemyColor =
+                playerColor.equals(ChessGame.TeamColor.WHITE) ?
+                        ChessGame.TeamColor.BLACK :
+                        ChessGame.TeamColor.WHITE;
+
+        String playerUsername = playerColor == ChessGame.TeamColor.WHITE ?
+                gameData.whiteUsername() :
+                gameData.blackUsername();
+        String enemyUsername = playerColor == ChessGame.TeamColor.WHITE ?
+                gameData.blackUsername() :
+                gameData.whiteUsername();
+        return new ChessPlayersInfo(playerUsername, enemyUsername, playerColor, enemyColor);
     }
 
     private String convertMoveToString(ChessMove move) {

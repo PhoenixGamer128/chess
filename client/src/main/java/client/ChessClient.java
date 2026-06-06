@@ -55,7 +55,7 @@ public class ChessClient implements NotificationHandler {
     }
 
     public void notify(ServerMessage notification) {
-        if (!notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
+        if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
             if (notification.getCurrentGameState() != null) {
                 currentGameState = notification.getCurrentGameState();
                 System.out.print(printBoard(currentGameState) + "\n" + SET_TEXT_COLOR_LIGHT_GREY + ">>> ");
@@ -63,6 +63,10 @@ public class ChessClient implements NotificationHandler {
         }
         if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
             System.out.println(SET_TEXT_COLOR_BLUE + notification.getMessage());
+            printPrompt();
+        }
+        if (notification.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR)) {
+            System.out.println(SET_TEXT_COLOR_RED + notification.getErrorMessage());
             printPrompt();
         }
     }
