@@ -118,6 +118,7 @@ public class ChessGame {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPosition);
         SpecialMovesCalculator specialMovesCalculator = new SpecialMovesCalculator();
+        boolean currentEnPassantOpening = false;
 
         if (piece == null) {
             throw new InvalidMoveException("No piece at start position");
@@ -131,9 +132,11 @@ public class ChessGame {
 
         if (validPieceMoves.contains(move)) {
             // Promotion and En Passant rules
+            if (!piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
+                enPassantPosition = new ChessPosition(0, 0);
+            }
             if (piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
-                // Allow En Passant
-                boolean currentEnPassantOpening = false;
+                // Allow En Passant for targeted Pawn
                 int moveDistance = move.getEndPosition().getRow() - move.getStartPosition().getRow();
                 if (moveDistance == 2 || moveDistance == -2) {
                     int targetRow = move.getStartPosition().getRow() + (moveDistance / 2);
@@ -141,7 +144,7 @@ public class ChessGame {
                     enPassantPosition = new ChessPosition(targetRow, targetCol);
                     currentEnPassantOpening = true;
                 }
-                // Execute En Passant
+                // Execute En Passant for Pawn performing action
                 int targetRow = move.getEndPosition().getRow();
                 if (!move.getEndPosition().equals(enPassantPosition) && !currentEnPassantOpening) {
                     enPassantPosition = new ChessPosition(0, 0);

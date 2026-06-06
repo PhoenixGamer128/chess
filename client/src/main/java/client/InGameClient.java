@@ -38,8 +38,14 @@ public class InGameClient {
     }
 
     public void resignGame(String authToken, Integer gameID) {
+        String resignMessage = "Are you sure you want to resign? (Type \"Yes\" to resign)";
+        System.out.println(SET_TEXT_COLOR_MAGENTA + resignMessage + SET_TEXT_COLOR_LIGHT_GREY);
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine().toLowerCase();
+        if (input.equals("yes")) {
         UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
         ws.sendRequest(request);
+        }
     }
 
     public String makeMove(String[] params) {
@@ -95,6 +101,7 @@ public class InGameClient {
 
     private ChessPiece.PieceType promotePawn() {
         String promotionMessage = "Please choose a piece to promote to: Queen / Knight / Rook / Bishop";
+        System.out.println(SET_TEXT_COLOR_MAGENTA + promotionMessage + SET_TEXT_COLOR_LIGHT_GREY);
         Scanner scanner = new Scanner(System.in);
         ChessPiece.PieceType promotionPiece = null;
         String input;
@@ -154,7 +161,7 @@ public class InGameClient {
                 return printBoardWhite(currentBoard, highlightedMoves);
             }
             else if (mainClient.getCurrentUserType().equals(ChessClient.UserType.OBSERVER)) {
-                return printBoardWhite(new ChessGame().getBoard(), highlightedMoves);
+                return printBoardWhite(currentBoard, highlightedMoves);
             }
             else {
                 return printBoardBlack(currentBoard, highlightedMoves);

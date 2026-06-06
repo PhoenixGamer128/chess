@@ -56,7 +56,6 @@ public class SpecialMovesCalculator {
         }
         ChessPosition takeLeft = new ChessPosition(row + direction, col - 1);
         ChessPosition takeRight = new ChessPosition(row + direction, col + 1);
-        SpecialMovesCalculator specialMovesCalculator = new SpecialMovesCalculator();
         ChessPosition enPassantPosition = game.getEnPassantPosition();
         if (enPassantPosition != null) {
             if (game.getEnPassantPosition().equals(takeLeft)) {

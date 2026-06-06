@@ -143,40 +143,59 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
             ChessPlayersInfo allPlayerInfo = createPlayersInfo(command, gameData);
 
-            // bar user from making moves in checkmate
-            if (game.isInCheckmate(allPlayerInfo.playerColor()) || game.isInCheckmate(allPlayerInfo.enemyColor())) {
-                sendErrorMessage(session, "Error: Game has ended");
+            if (!validateGameState(session, game, allPlayerInfo, move)) {
                 return;
             }
 
             // make move
-            if (allPlayerInfo.playerColor().equals(game.getTeamTurn())
-                    && game.validMoves(move.getStartPosition()).contains(move)
-                    && !game.getGameResigned()) {
-                game.makeMove(move);
-                gameService.updateBoard(command.getGameID(), game);
-                var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
-                connections.sendAll(session, command.getGameID(), loadMessage);
+            game.makeMove(move);
+            gameService.updateBoard(command.getGameID(), game);
+            var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
+            connections.sendAll(session, command.getGameID(), loadMessage);
 
-                var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                moveMessage.setMessage(String.format(
-                        "%s made the move %s",
-                        allPlayerInfo.playerUsername(),
-                        convertMoveToString(move)));
-                connections.broadcast(session, command.getGameID(), moveMessage);
+            var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+            moveMessage.setMessage(String.format(
+                    "%s made the move %s",
+                    allPlayerInfo.playerUsername(),
+                    convertMoveToString(move)));
+            connections.broadcast(session, command.getGameID(), moveMessage);
 
-                if (game.isInCheckmate(allPlayerInfo.enemyColor())) {
-                    var checkmateMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
-                    checkmateMessage.setMessage(String.format("%s is in checkmate", allPlayerInfo.enemyUsername()));
-                    connections.sendAll(session, command.getGameID(), checkmateMessage);
-                }
-            } else {
-                throw new InvalidMoveException();
+            if (game.isInCheckmate(allPlayerInfo.enemyColor())) {
+                var checkmateMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                checkmateMessage.setMessage(String.format("%s is in checkmate", allPlayerInfo.enemyUsername()));
+                connections.sendAll(session, command.getGameID(), checkmateMessage);
             }
         }
         catch (InvalidMoveException ex) {
             sendErrorMessage(session, "Error: Invalid move");
         }
+    }
+
+    private boolean validateGameState(Session session, ChessGame game, ChessPlayersInfo allPlayerInfo, ChessMove move) {
+        // bar user from making moves in checkmate
+        if (game.isInCheckmate(allPlayerInfo.playerColor()) || game.isInCheckmate(allPlayerInfo.enemyColor())) {
+            sendErrorMessage(session, "Error: Game has ended by checkmate");
+            return false;
+        }
+
+        if (!allPlayerInfo.playerColor().equals(game.getTeamTurn())) {
+            sendErrorMessage(session, "Error: Not your turn");
+            return false;
+        }
+
+        if (game.getGameResigned()) {
+            sendErrorMessage(session, "Error: Game has been resigned");
+            return false;
+        }
+        if (!game.validMoves(move.getStartPosition()).contains(move)) {
+            sendErrorMessage(session, "Error: Invalid Move");
+            return false;
+        }
+        if (game.getGameResigned()) {
+            sendErrorMessage(session, "Error: Game has been resigned");
+            return false;
+        }
+        return true;
     }
 
     private ChessPlayersInfo createPlayersInfo(UserGameCommand command, GameData gameData) {
@@ -212,11 +231,11 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void resignGame(UserGameCommand command, Session session) throws IOException {
         ChessGame game = gameService.getGame(command.getAuthToken(), command.getGameID()).game();
+        if (game.getGameResigned()) {
+            sendErrorMessage(session, "Error: the game has already been resigned");
+            return;
+        }
         if (!getPlayerType(command).equals(PlayerType.OBSERVER)) {
-            if (game.getGameResigned()) {
-                sendErrorMessage(session, "Error: the game has already been resigned");
-                return;
-            }
             game.setGameResigned(true);
         } else {
            sendErrorMessage(session, "Error: Cannot resign as an observer");
