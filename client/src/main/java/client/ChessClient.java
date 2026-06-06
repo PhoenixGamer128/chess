@@ -111,7 +111,8 @@ public class ChessClient implements NotificationHandler {
                     exit: ---
                     help: ---
                     redraw chess board: ---
-                    make move <position> <position>
+                    make move <position> <position>: ---
+                    resign: ---
                     """;
         };
     }
@@ -153,6 +154,7 @@ public class ChessClient implements NotificationHandler {
                   case "help", "" -> printHelp();
                   case "redraw" -> printBoard(currentGameState);
                   case "make" -> makeMove(params);
+                  case "resign" -> resignGame();
                     default -> cmdErrorMessage();
                 };
             }
@@ -181,6 +183,11 @@ public class ChessClient implements NotificationHandler {
         inGameClient.exitGame(authToken, currentGameID);
         state = State.SIGNEDIN;
         return "Exited game";
+    }
+
+    private String resignGame() {
+        inGameClient.resignGame(authToken, currentGameID);
+        return "";
     }
 
     public static String cmdErrorMessage() {

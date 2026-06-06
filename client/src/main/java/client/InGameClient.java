@@ -37,18 +37,22 @@ public class InGameClient {
         ws.sendRequest(request);
     }
 
+    public void resignGame(String authToken, Integer gameID) {
+        UserGameCommand request = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        ws.sendRequest(request);
+    }
+
     public String makeMove(String[] params) {
         if (params.length == 3 && params[0].equals("move")) {
             String[] startArray = params[0].split("");
             String[] endArray = params[1].split("");
             if (isValidCoords(startArray, endArray)) {
                 ChessMove move = parseMove(startArray, endArray);
-                String moveString = new Gson().toJson(move);
                 UserGameCommand request =
                         new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE,
                                 mainClient.getAuthToken(),
                                 mainClient.getCurrentGameID());
-                request.setMove(moveString);
+                request.setMove(move);
                 ws.sendRequest(request);
                 return "";
             }

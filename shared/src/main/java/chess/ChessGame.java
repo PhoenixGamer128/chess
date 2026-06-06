@@ -15,6 +15,7 @@ public class ChessGame {
     TeamColor teamTurn;
     ChessBoard board;
     ChessPosition enPassantPosition;
+    boolean gameResigned;
 
     public ChessGame() {
         board = new ChessBoard();
@@ -258,6 +259,10 @@ public class ChessGame {
         return enPassantPosition;
     }
 
+    public void setGameResigned(boolean gameResigned) {this.gameResigned = gameResigned;}
+
+    public boolean getGameResigned() {return this.gameResigned;}
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -266,11 +271,12 @@ public class ChessGame {
         ChessGame chessGame = (ChessGame) o;
         return teamTurn == chessGame.teamTurn
                 && Objects.equals(board, chessGame.board)
-                && Objects.equals(enPassantPosition, chessGame.enPassantPosition);
+                && Objects.equals(enPassantPosition, chessGame.enPassantPosition)
+                && Objects.equals(gameResigned, chessGame.gameResigned);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(teamTurn, board, enPassantPosition);
+        return Objects.hash(teamTurn, board, enPassantPosition, gameResigned);
     }
 }

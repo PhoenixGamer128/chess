@@ -53,6 +53,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
                 case CONNECT -> enterGame(command, ctx.session);
                 case LEAVE -> leaveGame(command, ctx.session);
                 case MAKE_MOVE -> makeMove(command, ctx.session);
+                case RESIGN -> resignGame(command, ctx.session);
             }
         } catch (Exception ex) {
             var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
@@ -164,7 +165,9 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
 
             // make move
-            if (game.validMoves(move.getStartPosition()).contains(move)) {
+            if (playerColor.equals(game.getTeamTurn())
+                    && game.validMoves(move.getStartPosition()).contains(move)
+                    && !game.getGameResigned()) {
                 game.makeMove(move);
                 gameService.updateBoard(command.getGameID(), game);
                 var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
@@ -193,17 +196,6 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private String buildMoveMessage(ChessGame game, ChessPlayerInfo playerInfo, ChessMove move) {
-        StringBuilder builder = new StringBuilder();
-        if (game.isInCheck(playerInfo.enemyColor())) {
-            builder.append(String.format("%s is in check", playerInfo.enemyUsername()));
-        }
-        if (game.isInCheckmate(playerInfo.enemyColor())) {
-            builder.append(String.format("%s is in checkmate", playerInfo.enemyUsername()));
-        }
-        return builder.toString();
-    }
-
     private String convertMoveToString(ChessMove move) {
         StringBuilder builder = new StringBuilder();
         String[] letterCoords = {"a","b","c","d","e","f","g","h"};
@@ -214,5 +206,17 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         builder.append(Arrays.asList(letterCoords).get(move.getEndPosition().getColumn()-1));
         builder.append(move.getEndPosition().getRow());
         return builder.toString();
+    }
+
+    private void resignGame(UserGameCommand command, Session session) throws IOException {
+        ChessGame game = gameService.getGame(command.getAuthToken(), command.getGameID()).game();
+        game.setGameResigned(true);
+        gameService.updateBoard(command.getGameID(), game);
+
+        String notificationMessage = String.format("%s has resigned", getUsername(command.getAuthToken()));
+        var notification = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+        notification.setMessage(notificationMessage);
+
+        connections.sendAll(session, command.getGameID(), notification);
     }
 }
