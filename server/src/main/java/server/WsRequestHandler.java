@@ -210,7 +210,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         ChessGame game = gameService.getGame(command.getAuthToken(), command.getGameID()).game();
         if (!getPlayerType(command).equals(PlayerType.OBSERVER)) {
             if (game.getGameResigned()) {
-                sendErrorMessage(session, "Error: game has already been resigned");
+                sendErrorMessage(session, "Error: the game has already been resigned");
                 return;
             }
             game.setGameResigned(true);
@@ -233,4 +233,3 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         connections.sendRoot(session, moveError);
     }
 }
-//TODO: Combine unnecessary duplicate code

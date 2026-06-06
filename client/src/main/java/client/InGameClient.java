@@ -125,7 +125,7 @@ public class InGameClient {
             if (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) && endPosition.getRow() == 8) {
                 return true;
             }
-            else return piece.getTeamColor().equals(ChessGame.TeamColor.BLACK) && endPosition.getRow() == 1;
+            else {return piece.getTeamColor().equals(ChessGame.TeamColor.BLACK) && endPosition.getRow() == 1;}
         }
         return false;
     }

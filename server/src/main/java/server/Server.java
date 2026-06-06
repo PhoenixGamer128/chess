@@ -100,12 +100,6 @@ public class Server {
         ctx.result(result);
     }
 
-    private void webSocketEndpoint(WsConfig ws) {
-        ws.onConnect(ctx -> System.out.println("Websocket connected"));
-        ws.onMessage(ctx -> ctx.send("WebSocket response: " + ctx.message()));
-        ws.onClose(ctx -> System.out.println("WebSocket closed"));
-    }
-
     private void deleteDataBase(Context ctx) {
         clearService.clear();
         returnEmptyJson(ctx);
