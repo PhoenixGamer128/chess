@@ -2,12 +2,12 @@ package client;
 
 import chess.*;
 import client.websocket.WebSocketFacade;
-import com.google.gson.Gson;
 import model.ResponseException;
 import server.ServerFacade;
 import websocket.commands.UserGameCommand;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Scanner;
 
 import static ui.ChessStyles.*;
@@ -44,9 +44,9 @@ public class InGameClient {
 
     public String makeMove(String[] params) {
         if (params.length == 3 && params[0].equals("move")) {
-            String[] startArray = params[0].split("");
-            String[] endArray = params[1].split("");
-            if (isValidCoords(startArray, endArray)) {
+            String[] startArray = params[1].split("");
+            String[] endArray = params[2].split("");
+            if (isValidCoord(startArray) && isValidCoord(endArray)) {
                 ChessMove move = parseMove(startArray, endArray);
                 UserGameCommand request =
                         new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE,
@@ -60,19 +60,37 @@ public class InGameClient {
         return "Make a move with \"Make move <Position> <Position>\", ex: Make move e2 e4";
     }
 
+    public String highlightMoves(String[] params) {
+        if (params.length == 3 && params[0].equals("legal") && params[1].equals("moves")) {
+            String[] positionArray = params[2].split("");
+            if (isValidCoord(positionArray)) {
+                ChessPosition startPosition = parsePosition(positionArray);
+                Collection<ChessMove> legalMoves = currentBoardState.validMoves(startPosition);
+                return showBoard(currentBoardState, legalMoves);
+            }
+        }
+        return "Highlight moves with \"Highlight legal moves <position>\"";
+    }
+
     private ChessMove parseMove(String[] startArray, String[] endArray) {
-        int startCol = convertStringCoordToInt(startArray[0]);
-        int startRow = Integer.parseInt(startArray[1]);
-        int endCol = convertStringCoordToInt(endArray[0]);
-        int endRow = Integer.parseInt(endArray[1]);
-        ChessPosition startPosition = new ChessPosition(startRow, startCol);
-        ChessPosition endPosition = new ChessPosition(endRow, endCol);
+//        int startCol = convertStringCoordToInt(startArray[0]);
+//        int startRow = Integer.parseInt(startArray[1]);
+//        int endCol = convertStringCoordToInt(endArray[0]);
+//        int endRow = Integer.parseInt(endArray[1]);
+        ChessPosition startPosition = parsePosition(startArray);
+        ChessPosition endPosition = parsePosition(endArray);
 
         ChessPiece.PieceType promotionPiece = null;
         if (isPawnPromotion(startPosition, endPosition)) {
             promotionPiece = promotePawn();
         }
         return new ChessMove(startPosition, endPosition, promotionPiece);
+    }
+
+    private ChessPosition parsePosition(String[] positionArray) {
+        int col = convertStringCoordToInt(positionArray[0]);
+        int row = Integer.parseInt(positionArray[1]);
+        return new ChessPosition(row, col);
     }
 
     private ChessPiece.PieceType promotePawn() {
@@ -103,11 +121,9 @@ public class InGameClient {
         return -1;
     }
 
-    private boolean isValidCoords(String[] startArray, String[] endArray) {
+    private boolean isValidCoord(String[] startArray) {
         return Arrays.asList(letterCords).contains(startArray[0])
-                && Arrays.asList(letterCords).contains(endArray[0])
-                && isInRange(startArray[1])
-                && isInRange(endArray[1]);
+                && isInRange(startArray[1]);
     }
 
     private boolean isInRange(String s) {
@@ -130,18 +146,18 @@ public class InGameClient {
         return false;
     }
 
-    public String showBoard(ChessGame boardState) {
+    public String showBoard(ChessGame boardState, Collection<ChessMove> highlightedMoves) {
         this.currentBoardState = boardState;
         try {
             ChessBoard currentBoard = boardState.getBoard();
             if (mainClient.getCurrentUserType().equals(ChessClient.UserType.WHITE)) {
-                return printBoardWhite(currentBoard);
+                return printBoardWhite(currentBoard, highlightedMoves);
             }
             else if (mainClient.getCurrentUserType().equals(ChessClient.UserType.OBSERVER)) {
-                return printBoardWhite(new ChessGame().getBoard());
+                return printBoardWhite(new ChessGame().getBoard(), highlightedMoves);
             }
             else {
-                return printBoardBlack(currentBoard);
+                return printBoardBlack(currentBoard, highlightedMoves);
             }
         }
         catch (IndexOutOfBoundsException ex) {
@@ -153,15 +169,15 @@ public class InGameClient {
         }
     }
 
-    private String printBoardWhite(ChessBoard currentBoard) {
-        return printBoardGeneric(true, currentBoard);
+    private String printBoardWhite(ChessBoard currentBoard, Collection<ChessMove> highlightedMoves) {
+        return printBoardGeneric(true, currentBoard, highlightedMoves);
     }
 
-    private String printBoardBlack(ChessBoard currentBoard) {
-        return printBoardGeneric(false, currentBoard);
+    private String printBoardBlack(ChessBoard currentBoard, Collection<ChessMove> highlightedMoves) {
+        return printBoardGeneric(false, currentBoard, highlightedMoves);
     }
 
-    private String printBoardGeneric(boolean isWhite, ChessBoard currentBoard) {
+    private String printBoardGeneric(boolean isWhite, ChessBoard currentBoard, Collection<ChessMove> highlightedMoves) {
         String rowCoords = "   a   b   c   d   e   f   g   h";
         String rowCoordsReverse = "   h   g   f   e   d   c   b   a";
         String rowCoordsColor = isWhite? rowCoords : rowCoordsReverse;
@@ -194,8 +210,21 @@ public class InGameClient {
                             .append(" ");
                 }
 
-                builder.append(printSquare((row + col) % 2 == 1));
                 ChessPosition position = new ChessPosition(row, col);
+                boolean hasHighlight = false;
+                if (highlightedMoves != null) {
+                    for (ChessMove highlightedMove : highlightedMoves) {
+                        if (position.equals(highlightedMove.getEndPosition())) {
+                            hasHighlight = true;
+                            break;
+                        }
+                    }
+                }
+                if (hasHighlight) {
+                    builder.append(printHighlight((row + col) % 2 == 1));
+                } else {
+                    builder.append(printSquare((row + col) % 2 == 1));
+                }
                 ChessPiece piece = currentBoard.getPiece(position);
 
                 if (piece == null) {

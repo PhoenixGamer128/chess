@@ -14,4 +14,11 @@ public class ChessStyles {
         }
         return SET_BG_COLOR_BLACK;
     }
+
+    public static String printHighlight(boolean altColor) {
+        if (altColor) {
+            return SET_BG_COLOR_GREEN;
+        }
+        return SET_BG_COLOR_DARK_GREEN;
+    }
 }

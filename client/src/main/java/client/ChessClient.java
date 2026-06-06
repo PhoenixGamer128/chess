@@ -89,6 +89,9 @@ public class ChessClient implements NotificationHandler {
     }
 
     private String printHelp() {
+        String isPlayerText = currentUserType != null && currentUserType.equals(UserType.OBSERVER) ? "" :
+                "Make move <position> <position>: Make a move as a player\n" +
+                        "Resign: Resign game";
         return switch (state) {
             case State.SIGNEDOUT ->
                     """
@@ -108,12 +111,11 @@ public class ChessClient implements NotificationHandler {
                     """;
             case State.INGAME ->
                     """
-                    exit: ---
-                    help: ---
-                    redraw chess board: ---
-                    make move <position> <position>: ---
-                    resign: ---
-                    """;
+                    Help: Show available commands
+                    Leave: Leave game (will leave spot open to take)
+                    Redraw chess board: show current state of the game
+                    Highlight Legal Moves <position>: show legal moves for a piece
+                    """ + isPlayerText;
         };
     }
 
@@ -155,6 +157,7 @@ public class ChessClient implements NotificationHandler {
                   case "redraw" -> printBoard(currentGameState);
                   case "make" -> makeMove(params);
                   case "resign" -> resignGame();
+                  case "highlight" -> highlightMoves(params);
                     default -> cmdErrorMessage();
                 };
             }
@@ -171,12 +174,16 @@ public class ChessClient implements NotificationHandler {
 
     public String printBoard(ChessGame boardState) {
 
-        return inGameClient.showBoard(boardState);
+        return inGameClient.showBoard(boardState, null);
     }
 
     private String makeMove(String[] params) {
         inGameClient.makeMove(params);
         return "";
+    }
+
+    private String highlightMoves(String[] params) {
+        return inGameClient.highlightMoves(params);
     }
 
     private String exitGame() {
