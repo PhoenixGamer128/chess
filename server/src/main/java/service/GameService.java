@@ -98,6 +98,11 @@ public class GameService {
         return gameDAO.listGames();
     }
 
+    public GameData getGame(String authToken, Integer gameID) {
+        validateAuthToken(authToken);
+        return gameDAO.getGame(gameID);
+    }
+
     private void validateAuthToken(String authToken) {
         if (!(userService.validAuthToken(authToken))) {
             throw new ResponseException(ResponseException.Code.Unauthorized, "Error: Unauthorized");

@@ -32,6 +32,11 @@ public class ConnectionManager {
         }
     }
 
+    public void sendAll(Session session, Integer gameID, ServerMessage message) throws IOException {
+        sendRoot(session, message);
+        broadcast(session, gameID, message);
+    }
+
     public void sendRoot(Session session, ServerMessage message) {
         String msg = new Gson().toJson(message);
         try {

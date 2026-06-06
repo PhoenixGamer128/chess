@@ -1,13 +1,14 @@
 package client;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import client.websocket.WebSocketFacade;
+import com.google.gson.Gson;
 import model.ResponseException;
 import server.ServerFacade;
 import websocket.commands.UserGameCommand;
+
+import java.util.Arrays;
+import java.util.Scanner;
 
 import static ui.ChessStyles.*;
 import static ui.EscapeSequences.*;
@@ -16,6 +17,9 @@ public class InGameClient {
     ServerFacade server;
     ChessClient mainClient;
     WebSocketFacade ws;
+    ChessGame currentBoardState;
+
+    private final String[] letterCords = {"a","b","c","d","e","f","g","h"};
 
     public InGameClient(ChessClient mainClient, ServerFacade server) {
         this.server = server;
@@ -33,7 +37,97 @@ public class InGameClient {
         ws.sendRequest(request);
     }
 
+    public String makeMove(String[] params) {
+        if (params.length == 3 && params[0].equals("move")) {
+            String[] startArray = params[0].split("");
+            String[] endArray = params[1].split("");
+            if (isValidCoords(startArray, endArray)) {
+                ChessMove move = parseMove(startArray, endArray);
+                String moveString = new Gson().toJson(move);
+                UserGameCommand request =
+                        new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE,
+                                mainClient.getAuthToken(),
+                                mainClient.getCurrentGameID());
+                request.setMove(moveString);
+                ws.sendRequest(request);
+                return "";
+            }
+        }
+        return "Make a move with \"Make move <Position> <Position>\", ex: Make move e2 e4";
+    }
+
+    private ChessMove parseMove(String[] startArray, String[] endArray) {
+        int startCol = convertStringCoordToInt(startArray[0]);
+        int startRow = Integer.parseInt(startArray[1]);
+        int endCol = convertStringCoordToInt(endArray[0]);
+        int endRow = Integer.parseInt(endArray[1]);
+        ChessPosition startPosition = new ChessPosition(startRow, startCol);
+        ChessPosition endPosition = new ChessPosition(endRow, endCol);
+
+        ChessPiece.PieceType promotionPiece = null;
+        if (isPawnPromotion(startPosition, endPosition)) {
+            promotionPiece = promotePawn();
+        }
+        return new ChessMove(startPosition, endPosition, promotionPiece);
+    }
+
+    private ChessPiece.PieceType promotePawn() {
+        String promotionMessage = "Please choose a piece to promote to: Queen / Knight / Rook / Bishop";
+        Scanner scanner = new Scanner(System.in);
+        ChessPiece.PieceType promotionPiece = null;
+        String input;
+        while (promotionPiece == null) {
+            input = scanner.nextLine().toLowerCase();
+            switch (input) {
+                case "queen" -> promotionPiece = ChessPiece.PieceType.QUEEN;
+                case "knight" -> promotionPiece = ChessPiece.PieceType.KNIGHT;
+                case "rook" -> promotionPiece = ChessPiece.PieceType.ROOK;
+                case "bishop" -> promotionPiece = ChessPiece.PieceType.BISHOP;
+                default -> {
+                    System.out.println(SET_TEXT_COLOR_RED + promotionMessage + SET_TEXT_COLOR_LIGHT_GREY);
+                    System.out.print(">>> ");
+                }
+            }
+        }
+        return promotionPiece;
+    }
+
+    private int convertStringCoordToInt(String s) {
+        for (int i = 0; i < 8; i++) {
+            if (letterCords[i].equals(s)) {return i+1;}
+        }
+        return -1;
+    }
+
+    private boolean isValidCoords(String[] startArray, String[] endArray) {
+        return Arrays.asList(letterCords).contains(startArray[0])
+                && Arrays.asList(letterCords).contains(endArray[0])
+                && isInRange(startArray[1])
+                && isInRange(endArray[1]);
+    }
+
+    private boolean isInRange(String s) {
+        try {
+            int position = Integer.parseInt(s);
+            return (position >= 1 && position <= 8);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    private boolean isPawnPromotion(ChessPosition startPosition, ChessPosition endPosition) {
+        ChessPiece piece = currentBoardState.getBoard().getPiece(startPosition);
+        if (piece != null && piece.getPieceType().equals(ChessPiece.PieceType.PAWN)) {
+            if (piece.getTeamColor().equals(ChessGame.TeamColor.WHITE) && endPosition.getRow() == 8) {
+                return true;
+            }
+            else return piece.getTeamColor().equals(ChessGame.TeamColor.BLACK) && endPosition.getRow() == 1;
+        }
+        return false;
+    }
+
     public String showBoard(ChessGame boardState) {
+        this.currentBoardState = boardState;
         try {
             ChessBoard currentBoard = boardState.getBoard();
             if (mainClient.getCurrentUserType().equals(ChessClient.UserType.WHITE)) {

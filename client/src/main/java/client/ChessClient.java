@@ -152,6 +152,7 @@ public class ChessClient implements NotificationHandler {
                   case "exit", "leave" -> exitGame();
                   case "help", "" -> printHelp();
                   case "redraw" -> printBoard(currentGameState);
+                  case "make" -> makeMove(params);
                     default -> cmdErrorMessage();
                 };
             }
@@ -169,6 +170,11 @@ public class ChessClient implements NotificationHandler {
     public String printBoard(ChessGame boardState) {
 
         return inGameClient.showBoard(boardState);
+    }
+
+    private String makeMove(String[] params) {
+        inGameClient.makeMove(params);
+        return "";
     }
 
     private String exitGame() {
@@ -203,6 +209,10 @@ public class ChessClient implements NotificationHandler {
 
     public void setCurrentGameID(int gameID) {
         currentGameID = gameID;
+    }
+
+    public int getCurrentGameID() {
+        return currentGameID;
     }
 
     public void setCurrentUserType(UserType userType) {

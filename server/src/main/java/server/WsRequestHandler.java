@@ -1,6 +1,8 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import io.javalin.websocket.*;
 import org.eclipse.jetty.websocket.api.Session;
@@ -13,6 +15,7 @@ import websocket.commands.UserGameCommand;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
@@ -48,6 +51,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
             switch (command.getCommandType()) {
                 case CONNECT -> enterGame(command, ctx.session);
                 case LEAVE -> leaveGame(command, ctx.session);
+                case MAKE_MOVE -> makeMove(command, ctx.session);
             }
         } catch (Exception ex) {
             var serverErrorMessage = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
@@ -98,7 +102,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private GameData getGameData(String authToken, Integer gameID) {
-        return gameService.listGames(authToken).games().get(gameID-1);
+        return gameService.getGame(authToken, gameID);
     }
 
     private ServerMessage createLoadMessage(String authToken, Integer gameID) {
@@ -108,7 +112,7 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private ChessGame getCurrentGameState(String authToken, Integer gameID) {
-        return gameService.listGames(authToken).games().get(gameID-1).game();
+        return gameService.getGame(authToken, gameID).game();
     }
 
     private String getUsername(String authToken) {
@@ -124,5 +128,68 @@ public class WsRequestHandler implements WsConnectHandler, WsMessageHandler, WsC
         notification.setMessage(notificationMessage);
 
         connections.broadcast(session, command.getGameID(), notification);
+    }
+
+    private void makeMove(UserGameCommand command, Session session) throws IOException {
+        try {
+            ChessMove move = command.getMove();
+            ChessGame game = gameService.getGame(command.getAuthToken(), command.getGameID()).game();
+            GameData gameData = getGameData(command.getAuthToken(), command.getGameID());
+
+            ChessGame.TeamColor playerColor =
+                    getPlayerType(command) == PlayerType.WHITE ?
+                            ChessGame.TeamColor.WHITE :
+                            ChessGame.TeamColor.BLACK;
+            ChessGame.TeamColor enemyColor =
+                    playerColor.equals(ChessGame.TeamColor.WHITE) ?
+                            ChessGame.TeamColor.BLACK :
+                            ChessGame.TeamColor.WHITE;
+
+            String playerUsername = playerColor == ChessGame.TeamColor.WHITE ?
+                    gameData.whiteUsername() :
+                    gameData.blackUsername();
+            String enemyUsername = playerColor == ChessGame.TeamColor.WHITE ?
+                    gameData.blackUsername() :
+                    gameData.whiteUsername();
+//            if (!playerColor.equals(game.getTeamTurn())) {
+//                throw new InvalidMoveException("Error: Not your turn");
+//            }
+            if (game.validMoves(move.getStartPosition()).contains(move)) {
+                game.makeMove(move);
+                var loadMessage = createLoadMessage(command.getAuthToken(), command.getGameID());
+                connections.sendAll(session, command.getGameID(), loadMessage);
+
+                var moveMessage = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                moveMessage.setMessage(String.format("%s made the move %s", playerUsername, convertMoveToString(move)));
+                connections.broadcast(session, command.getGameID(), moveMessage);
+            }
+            if (game.isInCheck(enemyColor)) {
+                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                message.setMessage(String.format("%s is in check", enemyUsername));
+                connections.sendAll(session, command.getGameID(), message);
+            }
+            if (game.isInCheckmate(enemyColor)) {
+                ServerMessage message = new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION);
+                message.setMessage(String.format("%s is in checkmate", enemyUsername));
+                connections.sendAll(session, command.getGameID(), message);
+            }
+        }
+        catch (InvalidMoveException ex) {
+            var moveError = new ServerMessage(ServerMessage.ServerMessageType.ERROR);
+            moveError.setErrorMessage("Error: Invalid move");
+            connections.sendRoot(session, moveError);
+        }
+    }
+
+    private String convertMoveToString(ChessMove move) {
+        StringBuilder builder = new StringBuilder();
+        String[] letterCoords = {"a","b","c","d","e","f","g","h"};
+        Arrays.asList(letterCoords).get(0);
+        builder.append(Arrays.asList(letterCoords).get(move.getStartPosition().getColumn()-1));
+        builder.append(move.getStartPosition().getRow());
+        builder.append(" ");
+        builder.append(Arrays.asList(letterCoords).get(move.getEndPosition().getColumn()-1));
+        builder.append(move.getEndPosition().getRow());
+        return builder.toString();
     }
 }
